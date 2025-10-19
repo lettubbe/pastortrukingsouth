@@ -133,22 +133,28 @@ const WishesSection = () => {
               const isNext = index === currentVideoIndex + 1
 
               let translateX = 0
+              let scaleX = 0
               let opacity = 0
 
               if (isActive) {
                 translateX = 0
+                scaleX = 1
                 opacity = 1
               } else if (isPrev) {
-                translateX = -100
-                opacity = 0.3
+                translateX = -50
+                scaleX = 0
+                opacity = 0
               } else if (isNext) {
-                translateX = 100
-                opacity = 0.3
+                translateX = 50
+                scaleX = 0
+                opacity = 0
               } else if (index < currentVideoIndex) {
-                translateX = -200
+                translateX = -100
+                scaleX = 0
                 opacity = 0
               } else {
-                translateX = 200
+                translateX = 100
+                scaleX = 0
                 opacity = 0
               }
 
@@ -161,8 +167,8 @@ const WishesSection = () => {
                   playsInline
                   animate={{
                     x: `${translateX}%`,
-                    opacity: opacity,
-                    rotateY: translateX * 0.2
+                    scaleX: scaleX,
+                    opacity: opacity
                   }}
                   transition={{
                     type: "spring",
@@ -177,7 +183,7 @@ const WishesSection = () => {
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    transformStyle: 'preserve-3d'
+                    transformOrigin: 'center'
                   }}
                 >
                   <source src={videoSrc} type="video/mp4" />
