@@ -44,7 +44,7 @@ const WishesSection = () => {
       ref={containerRef}
       style={{
         minHeight: '400vh',
-        backgroundColor: '#D6E5F8',
+        backgroundColor: '#FFFDFA',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
@@ -225,10 +225,8 @@ const WishesSection = () => {
                     opacity: opacity
                   }}
                   transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30,
-                    mass: 0.8
+                    duration: 0.8,
+                    ease: [0.25, 0, 0.1, 1]
                   }}
                   style={{
                     position: 'absolute',
