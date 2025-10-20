@@ -7,9 +7,29 @@ import { useVideoScrollProgress } from '../hooks/useVideoScrollProgress'
 const WishesSection = () => {
   const { scrollProgress, videoProgress, currentVideoIndex, containerRef, videoRef } = useVideoScrollProgress()
   
+  // Determine current scroll phase
+  const isScaleUpPhase = scrollProgress < 0.25
+  const isSlidingPhase = scrollProgress >= 0.25 && scrollProgress < 0.65
+  const isScaleDownPhase = scrollProgress >= 0.65
+  const scaleDownProgress = isScaleDownPhase ? Math.min(1, (scrollProgress - 0.65) / 0.35) : 0
+  
   // Calculate dynamic dimensions to prevent jumping
-  const maxWidth = Math.min(100, 65 + (videoProgress * 40))
-  const maxHeight = 300 + (videoProgress * 500)
+  let maxWidth = Math.min(100, 65 + (videoProgress * 40))
+  let maxHeight = 300 + (videoProgress * 500)
+  
+  // Scale down during scale down phase
+  if (isScaleDownPhase && scaleDownProgress > 0) {
+    // Normal scaling down (rectangle)
+    maxWidth = 100 - (scaleDownProgress * 95) // Scale down to 5% width
+    maxHeight = 800 - (scaleDownProgress * 760) // Scale down to 40px height
+    
+    // In final stages, morph to circle by making width equal to height
+    if (scaleDownProgress > 0.7) {
+      const morphProgress = (scaleDownProgress - 0.7) / 0.3 // 0 to 1 for morph phase
+      const targetWidth = (maxHeight / window.innerWidth) * 100 // Convert height to width percentage
+      maxWidth = maxWidth + (targetWidth - maxWidth) * morphProgress
+    }
+  }
 
   const videos = [
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
@@ -111,13 +131,26 @@ const WishesSection = () => {
           style={{
             width: `${maxWidth}%`,
             height: `${maxHeight}px`,
-            borderRadius: `${20 * (1 - videoProgress)}px`,
+            borderRadius: (() => {
+              if (isScaleDownPhase && scaleDownProgress > 0.7) {
+                const morphProgress = (scaleDownProgress - 0.7) / 0.3 // 0 to 1 for morph phase
+                return `${morphProgress * 50}%` // Gradually transition from 0% to 50%
+              }
+              return isScaleDownPhase && scaleDownProgress > 0 
+                ? `${20 * (1 - videoProgress)}px`
+                : `${20 * (1 - videoProgress)}px`
+            })(),
             overflow: 'hidden',
             boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-            position: videoProgress === 1 && currentVideoIndex > 0 ? 'fixed' : 'relative',
-            top: videoProgress === 1 && currentVideoIndex > 0 ? '0' : 'auto',
-            left: videoProgress === 1 && currentVideoIndex > 0 ? '0' : 'auto',
-            zIndex: videoProgress === 1 && currentVideoIndex > 0 ? 1000 : 'auto',
+            position: (isSlidingPhase || isScaleDownPhase) ? 'fixed' : 'relative',
+            top: isScaleDownPhase && scaleDownProgress > 0 
+              ? `calc(50vh - ${maxHeight/2}px - 150px)` 
+              : '0',
+            left: isScaleDownPhase && scaleDownProgress > 0 
+              ? `calc(50vw - ${maxWidth/2}vw)` 
+              : '0',
+            transform: 'none',
+            zIndex: isScaleDownPhase && scaleDownProgress > 0 ? 1001 : (isSlidingPhase ? 1000 : 'auto'),
             margin: '0 auto'
           }}
         >
@@ -133,34 +166,55 @@ const WishesSection = () => {
               const isNext = index === currentVideoIndex + 1
 
               let translateX = 0
-              let scaleX = 0
+              let scaleX = 1
               let opacity = 0
 
-              if (isActive) {
-                translateX = 0
-                scaleX = 1
-                opacity = 1
-              } else if (isPrev) {
-                translateX = -50
-                scaleX = 0
-                opacity = 0
-              } else if (isNext) {
-                translateX = 50
-                scaleX = 0
-                opacity = 0
-              } else if (index < currentVideoIndex) {
-                translateX = -100
-                scaleX = 0
-                opacity = 0
-              } else {
-                translateX = 100
-                scaleX = 0
-                opacity = 0
+              if (isScaleUpPhase || isScaleDownPhase) {
+                // During scale up and scale down: only show active video, no sliding
+                if (isActive) {
+                  translateX = 0
+                  scaleX = 1
+                  opacity = 1
+                } else {
+                  translateX = 0
+                  scaleX = 1
+                  opacity = 0
+                }
+              } else if (isSlidingPhase) {
+                // During sliding phase: accordion sliding transitions
+                if (isActive) {
+                  translateX = 0
+                  scaleX = 1
+                  opacity = 1
+                } else if (isPrev) {
+                  translateX = -50
+                  scaleX = 0
+                  opacity = 0
+                } else if (isNext) {
+                  translateX = 50
+                  scaleX = 0
+                  opacity = 0
+                } else if (index < currentVideoIndex) {
+                  translateX = -100
+                  scaleX = 0
+                  opacity = 0
+                } else {
+                  translateX = 100
+                  scaleX = 0
+                  opacity = 0
+                }
               }
 
               return (
                 <motion.video
                   key={index}
+                  ref={(el) => {
+                    if (el && isScaleDownPhase && scaleDownProgress > 0.5) {
+                      el.pause()
+                    } else if (el && !isScaleDownPhase) {
+                      el.play()
+                    }
+                  }}
                   autoPlay
                   muted
                   loop
@@ -183,7 +237,8 @@ const WishesSection = () => {
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    transformOrigin: 'center'
+                    transformOrigin: 'center',
+                    filter: isScaleDownPhase && scaleDownProgress > 0.3 ? 'brightness(0)' : 'none'
                   }}
                 >
                   <source src={videoSrc} type="video/mp4" />
@@ -192,7 +247,129 @@ const WishesSection = () => {
               )
             })}
           </div>
+          
         </motion.div>
+
+        {/* Happy Birthday text */}
+        {isScaleDownPhase && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '40%',
+              left: '0',
+              right: '0',
+              transform: 'translateY(-50%)',
+              zIndex: 999,
+              fontSize: 'clamp(80px, 12vw, 200px)',
+              fontWeight: '700',
+              color: 'black',
+              fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+              textAlign: 'center',
+              lineHeight: '1',
+              pointerEvents: 'none'
+            }}
+          >
+            <span style={{ position: 'relative' }}>
+              {/* Happy */}
+              {"Happy".split("").map((char, i) => (
+                <span
+                  key={`happy-${i}`}
+                  style={{
+                    display: 'inline-block',
+                    fontSize: '0.765em',
+                    transform: scaleDownProgress > 0 ? `translateY(${Math.max(0, 100 - (scaleDownProgress * 200) - (i * 20))}%)` : 'translateY(100%)',
+                    opacity: Math.max(0, Math.min(1, (scaleDownProgress * 5) - (i * 0.3))),
+                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                  }}
+                >
+                  {char}
+                </span>
+              ))}
+              <span style={{ fontSize: '0.735em' }}> </span>
+              
+              {/* B */}
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontSize: '1em',
+                  transform: scaleDownProgress > 0.2 ? `translateY(${Math.max(0, 100 - ((scaleDownProgress - 0.2) * 250))}%)` : 'translateY(100%)',
+                  opacity: Math.max(0, Math.min(1, (scaleDownProgress - 0.1) * 5)),
+                  transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                }}
+              >
+                B
+              </span>
+              
+              {/* i rectangle and rthday */}
+              <span style={{ position: 'relative', display: 'inline-block' }}>
+                <div
+                  style={{
+                    display: 'inline-block',
+                    width: '22px',
+                    height: '100px',
+                    backgroundColor: 'black',
+                    verticalAlign: 'baseline',
+                    marginTop: '20px',
+                    transform: scaleDownProgress > 0.3 ? `translateY(${Math.max(0, 100 - ((scaleDownProgress - 0.3) * 250))}%)` : 'translateY(100%)',
+                    opacity: Math.max(0, Math.min(1, (scaleDownProgress - 0.2) * 5)),
+                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                  }}
+                />
+              </span>
+              
+              {"rthday".split("").map((char, i) => (
+                <span
+                  key={`rthday-${i}`}
+                  style={{
+                    display: 'inline-block',
+                    fontSize: '1em',
+                    transform: scaleDownProgress > 0.4 ? `translateY(${Math.max(0, 100 - ((scaleDownProgress - 0.4) * 200) - (i * 15))}%)` : 'translateY(100%)',
+                    opacity: Math.max(0, Math.min(1, (scaleDownProgress - 0.3) * 5 - (i * 0.2))),
+                    transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                  }}
+                >
+                  {char}
+                </span>
+              ))}
+            </span>
+          </div>
+        )}
+
+        {/* Tru South King */}
+        {isScaleDownPhase && scaleDownProgress > 0.6 && (
+          <div
+            style={{
+              position: 'fixed',
+              top: '65%',
+              left: '0',
+              right: '0',
+              transform: 'translateY(-50%)',
+              zIndex: 999,
+              fontSize: 'clamp(60px, 10vw, 150px)',
+              fontWeight: '400',
+              color: 'black',
+              fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+              textAlign: 'center',
+              lineHeight: '1',
+              pointerEvents: 'none'
+            }}
+          >
+            {/* Tru South King */}
+            {"Tru South King".split("").map((char, i) => (
+              <span
+                key={`tru-${i}`}
+                style={{
+                  display: 'inline-block',
+                  transform: scaleDownProgress > 0.6 ? `translateY(${Math.max(0, 100 - ((scaleDownProgress - 0.6) * 250) - (i * 10))}%)` : 'translateY(100%)',
+                  opacity: Math.max(0, Math.min(1, (scaleDownProgress - 0.5) * 5 - (i * 0.1))),
+                  transition: 'transform 0.3s ease-out, opacity 0.3s ease-out'
+                }}
+              >
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   )

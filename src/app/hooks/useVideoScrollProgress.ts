@@ -45,20 +45,26 @@ export const useVideoScrollProgress = () => {
       
       setScrollProgress(containerProgress)
 
-      // Determine when video should start switching based on container progress
-      const videoSwitchingThreshold = 0.18 // Start switching at 30% container scroll
+      // 3-phase scroll logic
+      const scaleUpThreshold = 0.25 // Scale up until 25%
+      const scaleDownThreshold = 0.65 // Start scaling down at 65%
       
-      if (containerProgress < videoSwitchingThreshold) {
-        // Scaling phase - use video position for smooth scaling
+      if (containerProgress < scaleUpThreshold) {
+        // Phase 1: Scale up carousel, stay on video 0
         setVideoProgress(videoScaleProgress)
         setCurrentVideoIndex(0)
       } 
-      else {
-        // Switching phase - use container progress for stable video switching
+      else if (containerProgress < scaleDownThreshold) {
+        // Phase 2: Fullscreen sliding between videos
         setVideoProgress(1)
-        const switchingProgress = (containerProgress - videoSwitchingThreshold) / (1 - videoSwitchingThreshold)
-        const videoIndex = Math.floor(switchingProgress * 5)
-        setCurrentVideoIndex(Math.min(4, videoIndex))
+        const slidingProgress = (containerProgress - scaleUpThreshold) / (scaleDownThreshold - scaleUpThreshold)
+        const videoIndex = Math.floor(slidingProgress * 4) // Videos 0-3
+        setCurrentVideoIndex(Math.min(3, videoIndex))
+      }
+      else {
+        // Phase 3: Scale down carousel, stay on last video
+        setVideoProgress(1)
+        setCurrentVideoIndex(3)
       }
     }
 
