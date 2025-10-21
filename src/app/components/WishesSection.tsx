@@ -6,23 +6,23 @@ import { useVideoScrollProgress } from '../hooks/useVideoScrollProgress'
 
 const WishesSection = () => {
   const { scrollProgress, videoProgress, currentVideoIndex, containerRef, videoRef } = useVideoScrollProgress()
-  
+
   // Determine current scroll phase
   const isScaleUpPhase = scrollProgress < 0.25
   const isSlidingPhase = scrollProgress >= 0.25 && scrollProgress < 0.65
   const isScaleDownPhase = scrollProgress >= 0.65
   const scaleDownProgress = isScaleDownPhase ? Math.min(1, (scrollProgress - 0.65) / 0.35) : 0
-  
+
   // Calculate dynamic dimensions to prevent jumping
   let maxWidth = Math.min(100, 65 + (videoProgress * 40))
   let maxHeight = 300 + (videoProgress * 500)
-  
+
   // Scale down during scale down phase
   if (isScaleDownPhase && scaleDownProgress > 0) {
     // Normal scaling down (rectangle)
     maxWidth = 100 - (scaleDownProgress * 95) // Scale down to 5% width
     maxHeight = 800 - (scaleDownProgress * 760) // Scale down to 40px height
-    
+
     // In final stages, morph to circle by making width equal to height
     if (scaleDownProgress > 0.7) {
       const morphProgress = (scaleDownProgress - 0.7) / 0.3 // 0 to 1 for morph phase
@@ -136,18 +136,18 @@ const WishesSection = () => {
                 const morphProgress = (scaleDownProgress - 0.7) / 0.3 // 0 to 1 for morph phase
                 return `${morphProgress * 50}%` // Gradually transition from 0% to 50%
               }
-              return isScaleDownPhase && scaleDownProgress > 0 
+              return isScaleDownPhase && scaleDownProgress > 0
                 ? `${20 * (1 - videoProgress)}px`
                 : `${20 * (1 - videoProgress)}px`
             })(),
             overflow: 'hidden',
             boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
             position: (isSlidingPhase || isScaleDownPhase) ? 'fixed' : 'relative',
-            top: isScaleDownPhase && scaleDownProgress > 0 
-              ? `calc(50vh - ${maxHeight/2}px - 150px)` 
+            top: isScaleDownPhase && scaleDownProgress > 0
+              ? `calc(50vh - ${maxHeight / 2}px - 150px)`
               : '0',
-            left: isScaleDownPhase && scaleDownProgress > 0 
-              ? `calc(50vw - ${maxWidth/2}vw)` 
+            left: isScaleDownPhase && scaleDownProgress > 0
+              ? `calc(50vw - ${maxWidth / 2}vw)`
               : '0',
             transform: 'none',
             zIndex: isScaleDownPhase && scaleDownProgress > 0 ? 1001 : (isSlidingPhase ? 1000 : 'auto'),
@@ -245,7 +245,7 @@ const WishesSection = () => {
               )
             })}
           </div>
-          
+
         </motion.div>
 
         {/* Happy Birthday text */}
@@ -264,7 +264,8 @@ const WishesSection = () => {
               fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
               textAlign: 'center',
               lineHeight: '1',
-              pointerEvents: 'none'
+              // pointerEvents: 'none',
+              // opacity: Math.max(0, 1 - (scaleDownProgress - 0.7) * 5)
             }}
           >
             <span style={{ position: 'relative' }}>
@@ -284,7 +285,7 @@ const WishesSection = () => {
                 </span>
               ))}
               <span style={{ fontSize: '0.735em' }}> </span>
-              
+
               {/* B */}
               <span
                 style={{
@@ -297,7 +298,7 @@ const WishesSection = () => {
               >
                 B
               </span>
-              
+
               {/* i rectangle and rthday */}
               <span style={{ position: 'relative', display: 'inline-block' }}>
                 <div
@@ -305,7 +306,7 @@ const WishesSection = () => {
                     display: 'inline-block',
                     width: '22px',
                     height: '100px',
-                    backgroundColor: 'black',
+                    backgroundColor: '#940404',
                     verticalAlign: 'baseline',
                     marginTop: '20px',
                     transform: scaleDownProgress > 0.3 ? `translateY(${Math.max(0, 100 - ((scaleDownProgress - 0.3) * 250))}%)` : 'translateY(100%)',
@@ -314,7 +315,7 @@ const WishesSection = () => {
                   }}
                 />
               </span>
-              
+
               {"rthday".split("").map((char, i) => (
                 <span
                   key={`rthday-${i}`}
@@ -344,8 +345,8 @@ const WishesSection = () => {
               transform: 'translateY(-50%)',
               zIndex: 999,
               fontSize: 'clamp(60px, 10vw, 150px)',
-              fontWeight: '400',
-              color: 'black',
+              fontWeight: '500',
+              color: '#C9952F',
               fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
               textAlign: 'center',
               lineHeight: '1',
@@ -353,7 +354,7 @@ const WishesSection = () => {
             }}
           >
             {/* Tru South King */}
-            {"Tru South King".split("").map((char, i) => (
+            {"Pst. Tru South".split("").map((char, i) => (
               <span
                 key={`tru-${i}`}
                 style={{

@@ -3,6 +3,85 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WordStagger } from './TextAnimations';
 
+// CSS styles for responsive design
+const navbarStyles = `
+  .navbar-container {
+    padding: 32px 48px;
+  }
+  
+  .navbar-logo {
+    font-size: 24px;
+  }
+  
+  .menu-overlay {
+    padding-top: 120px;
+    padding-left: 80px;
+    padding-right: 80px;
+  }
+  
+  .menu-container {
+    justify-content: space-between;
+    flex-direction: row;
+  }
+  
+  .menu-links {
+    gap: 30px;
+    margin-bottom: 60px;
+  }
+  
+  .menu-link-text {
+    font-size: 56px;
+    line-height: 1;
+    word-break: normal;
+  }
+  
+  .media-display {
+    display: block;
+  }
+  
+  @media (max-width: 768px) {
+    .navbar-container {
+      padding: 20px 24px;
+    }
+    
+    .navbar-logo {
+      font-size: 18px;
+    }
+    
+    .menu-overlay {
+      padding-top: 80px;
+      padding-left: 24px;
+      padding-right: 24px;
+    }
+    
+    .menu-container {
+      justify-content: flex-start;
+      flex-direction: column;
+    }
+    
+    .menu-links {
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    
+    .menu-link-text {
+      font-size: 28px;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+    
+    .media-display {
+      display: none;
+    }
+  }
+`;
+
+if (typeof document !== 'undefined') {
+  const styleElement = document.createElement('style');
+  styleElement.textContent = navbarStyles;
+  document.head.appendChild(styleElement);
+}
+
 const translate = {
   initial: {
     y: "100%",
@@ -39,8 +118,8 @@ const blur = {
 
 const mainLinks = [
   { title: "About", href: "/about", media: { type: "gif", src: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif" } },
-  { title: "Say something", href: "/contact", media: { type: "gif", src: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" } },
-  { title: "Studio", href: "/studio", media: { type: "gif", src: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif" } }
+  { title: "Say something", href: "/post", media: { type: "gif", src: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" } },
+  { title: "BTS", href: "/behindthescenes", media: { type: "gif", src: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif" } }
 ];
 
 const socialLinks = [
@@ -105,7 +184,7 @@ const menuContentSwing = {
   }
 };
 
-export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMenuToggle?: (isOpen: boolean) => void; pageAnimationStarted?: boolean }) {
+export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuToggle?: (isOpen: boolean) => void; pageAnimationStarted?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState({ isActive: false, index: 0 });
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -154,17 +233,16 @@ export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMe
       zIndex: 50 
     }}>
       {/* Main navbar */}
-      <div style={{ 
+      <div className="navbar-container" style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'center', 
-        padding: '32px 48px' 
+        alignItems: 'center'
       }}>
         {/* Logo */}
         <div style={{ zIndex: 50, overflow: 'hidden' }}>
           <h1 
+            className="navbar-logo"
             style={{ 
-              fontSize: '24px', 
               fontWeight: '500', 
               color: 'white',
               margin: 0,
@@ -285,6 +363,7 @@ export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMe
             initial="initial"
             animate="animate"
             exit="exit"
+            className="menu-overlay"
             style={{
               position: 'fixed',
               top: 0,
@@ -299,15 +378,15 @@ export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMe
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'flex-start',
-              paddingTop: '120px',
-              paddingLeft: '80px'
+              boxSizing: 'border-box'
             }}
           >
-            <div style={{ 
+            <div className="menu-container" style={{ 
               display: 'flex', 
               width: '100%', 
-              justifyContent: 'space-between',
-              alignItems: 'flex-start'
+              alignItems: 'flex-start',
+              overflow: 'hidden',
+              boxSizing: 'border-box'
             }}>
               <motion.div
               variants={menuContentSwing}
@@ -318,16 +397,20 @@ export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMe
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
-                width: '100%'
+                width: '100%',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                boxSizing: 'border-box'
               }}
             >
               {/* Main Navigation Links */}
-              <div style={{ 
+              <div className="menu-links" style={{ 
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'flex-start',
-                gap: '30px',
-                marginBottom: '60px'
+                width: '100%',
+                overflow: 'hidden',
+                boxSizing: 'border-box'
               }}>
               {mainLinks.map((link, index) => (
                 <a
@@ -336,16 +419,18 @@ export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMe
                   onClick={() => handleMenuToggle()}
                   style={{
                     textDecoration: 'none',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    width: '100%',
+                    overflow: 'hidden'
                   }}
                 >
                   <motion.p
+                    className="menu-link-text"
                     onMouseOver={() => setSelectedLink({ isActive: true, index })}
                     onMouseLeave={() => setSelectedLink({ isActive: false, index })}
                     variants={blur}
                     animate={selectedLink.isActive && selectedLink.index !== index ? "open" : "closed"}
                     style={{
-                      fontSize: '56px',
                       fontWeight: '300',
                       textTransform: 'uppercase',
                       color: 'white',
@@ -396,7 +481,7 @@ export default function NewNavbar({ onMenuToggle, pageAnimationStarted }: { onMe
             </motion.div>
 
             {/* Media Display */}
-            <div style={{ 
+            <div className="media-display" style={{ 
               position: 'relative',
               width: '600px',
               height: '300px',

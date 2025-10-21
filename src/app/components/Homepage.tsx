@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Lenis from '@studio-freight/lenis'
-import NewNavbar from './NewNavbar'
+import Navbar from './Navbar'
 import Preloader from './Preloader'
 import { HeroSection } from './HeroSection'
 import WishesSection from './WishesSection'
+import EditSection from './EditSection'
 import { pageSwing, pageEntrance } from '../animations/pageAnimations'
 
 const HomePage = () => {
@@ -65,7 +66,7 @@ const HomePage = () => {
           transformOrigin: 'top left'
         }}
       >
-        <NewNavbar onMenuToggle={setIsMenuOpen} pageAnimationStarted={pageAnimationStarted} />
+        <Navbar onMenuToggle={setIsMenuOpen} pageAnimationStarted={pageAnimationStarted} />
 
         <motion.div
           variants={pageSwing}
@@ -78,6 +79,8 @@ const HomePage = () => {
           <HeroSection pageAnimationStarted={pageAnimationStarted} />
 
           <WishesSection />
+
+          <EditSection />
         </motion.div>
       </motion.div>
     </div>
