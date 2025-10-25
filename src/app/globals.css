@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Disable scroll restoration */
+html {
+  scroll-behavior: auto !important;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
