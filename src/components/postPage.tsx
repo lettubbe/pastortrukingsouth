@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { Double } from './Double';
+import Image from 'next/image';
 
 interface VideoElement {
   id: number;
@@ -35,6 +37,25 @@ const PostPage: React.FC = () => {
     { id: 6, title: "Space", thumbnail: 'https://picsum.photos/300/300?random=6', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', x: 80, y: 60, size: 90, color: '#fd79a8' },
     { id: 7, title: "Forest", thumbnail: 'https://picsum.photos/300/300?random=7', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', x: 30, y: 90, size: 80, color: '#a29bfe' },
     { id: 8, title: "Desert", thumbnail: 'https://picsum.photos/300/300?random=8', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', x: 20, y: 45, size: 160, color: '#fd7f28' }
+  ];
+
+  const postsData = [
+    [
+      { src: 'studio.png', name: 'Studio Session', description: 'Behind the scenes of our latest recording session', year: '2024' },
+      { src: 'PRAISE.jpg', name: 'PRAISE', description: 'Our latest single release', year: '2024' }
+    ],
+    [
+      { src: 'PraiseNight.jpg', name: 'Praise Night', description: 'Live performance highlights', year: '2024' },
+      { src: 'about.jpg', name: 'About Us', description: 'Get to know the artist behind the music', year: '2024' }
+    ],
+    [
+      { src: 'rahpathon.png', name: 'Rahpathon', description: 'Special event coverage', year: '2024' },
+      { src: 'studio.png', name: 'Studio Work', description: 'Creating new music', year: '2024' }
+    ],
+    [
+      { src: 'about.jpg', name: 'Artist Profile', description: 'Connect with us', year: '2024' },
+      { src: 'PRAISE.jpg', name: 'Music', description: 'Our sound and style', year: '2024' }
+    ]
   ];
 
   // Video handling functions
@@ -283,83 +304,103 @@ const PostPage: React.FC = () => {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative w-screen h-screen bg-gradient-to-br from-gray-50 to-gray-200 overflow-hidden cursor-none">
-      {/* Video Elements */}
-      {videos.map((video, index) => (
-        <div
-          key={video.id}
-          ref={el => {
-            if (el) elementsRef.current[index] = el;
-          }}
-          className="absolute rounded-2xl pointer-events-auto overflow-hidden cursor-pointer group"
-          style={{
-            width: `${video.size}px`,
-            height: `${video.size}px`,
-            left: `${video.x}%`,
-            top: `${video.y}%`,
-            transform: 'translate(-50%, -50%)',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
-          }}
-          onMouseEnter={() => handleVideoHover(video.id, true)}
-          onMouseLeave={() => handleVideoHover(video.id, false)}
-          onClick={() => handleVideoClick(video.id)}
-        >
-          {/* Thumbnail Image */}
-          <img
-            src={video.thumbnail}
-            alt={video.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              // Fallback to colored background if thumbnail fails to load
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              const fallback = target.nextElementSibling as HTMLElement;
-              if (fallback) fallback.style.display = 'flex';
-            }}
-          />
-          
-          {/* Fallback colored background */}
-          <div 
-            className="absolute inset-0"
-            style={{ backgroundColor: video.color, display: 'none' }}
-          />
-          
-          {/* Video Element (plays on hover) */}
-          <video
+    <div className="relative w-screen overflow-x-hidden cursor-none" style={{ height: 'auto', minHeight: '100vh' }}>
+      {/* First Section - Video Gallery */}
+      <div ref={containerRef} className="relative w-screen h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+        {/* Video Elements */}
+        {videos.map((video, index) => (
+          <div
+            key={video.id}
             ref={el => {
-              if (el) videoRefs.current[index] = el;
+              if (el) elementsRef.current[index] = el;
             }}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
-              hoveredVideo === video.id ? 'opacity-100' : 'opacity-0'
-            }`}
-            muted
-            loop
-            playsInline
-            preload="metadata"
+            className="absolute rounded-2xl pointer-events-auto overflow-hidden cursor-pointer group"
+            style={{
+              width: `${video.size}px`,
+              height: `${video.size}px`,
+              left: `${video.x}%`,
+              top: `${video.y}%`,
+              transform: 'translate(-50%, -50%)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+            }}
+            onMouseEnter={() => handleVideoHover(video.id, true)}
+            onMouseLeave={() => handleVideoHover(video.id, false)}
+            onClick={() => handleVideoClick(video.id)}
           >
-            <source src={video.videoUrl} type="video/mp4" />
-          </video>
-        </div>
-      ))}
+            {/* Thumbnail Image */}
+            <img
+              src={video.thumbnail}
+              alt={video.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Fallback to colored background if thumbnail fails to load
+                const target = e.target as HTMLImageElement;
+                target.style.display = 'none';
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) fallback.style.display = 'flex';
+              }}
+            />
+            
+            {/* Fallback colored background */}
+            <div 
+              className="absolute inset-0"
+              style={{ backgroundColor: video.color, display: 'none' }}
+            />
+            
+            {/* Video Element (plays on hover) */}
+            <video
+              ref={el => {
+                if (el) videoRefs.current[index] = el;
+              }}
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
+                hoveredVideo === video.id ? 'opacity-100' : 'opacity-0'
+              }`}
+              muted
+              loop
+              playsInline
+              preload="metadata"
+            >
+              <source src={video.videoUrl} type="video/mp4" />
+            </video>
+          </div>
+        ))}
 
-      {/* Title */}
-      <div 
-        ref={titleRef}
-        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
-      >
-        <h1 className="text-5xl font-black text-gray-800 tracking-wider text-center">
-          SAY SOMETHING
-        </h1>
+        {/* Title */}
+        <div 
+          ref={titleRef}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
+        >
+          <h1 className="text-5xl font-black text-gray-800 tracking-wider text-center">
+            SAY SOMETHING
+          </h1>
+        </div>
+
+        {/* Custom cursor */}
+        <div 
+          ref={cursorRef}
+          className={`fixed w-5 h-5 bg-black/50 rounded-full pointer-events-none z-50 transition-transform duration-100 ease-out ${
+            isHovering ? 'scale-150 bg-black/80' : ''
+          }`}
+          style={{ transform: 'translate(-50%, -50%)' }}
+        />
       </div>
 
-      {/* Custom cursor */}
-      <div 
-        ref={cursorRef}
-        className={`fixed w-5 h-5 bg-black/50 rounded-full pointer-events-none z-50 transition-transform duration-100 ease-out ${
-          isHovering ? 'scale-150 bg-black/80' : ''
-        }`}
-        style={{ transform: 'translate(-50%, -50%)' }}
-      />
+      {/* Second Section - Posts */}
+      <div className="relative w-full bg-white py-16">
+        <div className="mx-auto px-8">
+          <h2 className="text-4xl font-bold text-black mb-12 text-center">
+            Posts
+          </h2>
+          
+          {/* Series of Double components */}
+          <div className="space-y-8">
+            <Double projects={[postsData[0][0], postsData[0][1]]} />
+            <Double projects={[postsData[1][0], postsData[1][1]]} reversed={true} />
+            <Double projects={[postsData[2][0], postsData[2][1]]} />
+            <Double projects={[postsData[3][0], postsData[3][1]]} reversed={true} />
+          </div>
+        </div>
+      </div>
 
       {/* Fullscreen Video Controls */}
       {fullscreenVideo && (

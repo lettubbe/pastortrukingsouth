@@ -8,6 +8,7 @@ import Preloader from './Preloader'
 import { HeroSection } from './HeroSection'
 import WishesSection from './WishesSection'
 import EditSection from './EditSection'
+import ManOfTheDaySection from './ManOfTheDaySection'
 import AudioControl from './AudioControl'
 import { pageSwing, pageEntrance } from '../animations/pageAnimations'
 import { useBackgroundAudio } from '../hooks/useBackgroundAudio'
@@ -97,6 +98,8 @@ const HomePage = () => {
           />
 
           <EditSection />
+
+          <ManOfTheDaySection />
         </motion.div>
       </motion.div>
     </div>

@@ -109,6 +109,14 @@ const WishesSection: React.FC<WishesSectionProps> = ({
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
   ]
 
+  const videoTexts = [
+    "Wife&Kids",
+    "Mom&Dad", 
+    "Siblings",
+    "Close Friends",
+    "Colleagues"
+  ]
+
   return (
     <div
       ref={containerRef}
@@ -312,6 +320,93 @@ const WishesSection: React.FC<WishesSectionProps> = ({
             })}
           </div>
 
+          {/* Text overlay for videos - only visible during sliding phase */}
+          {isSlidingPhase && (
+            <div
+              style={{
+                position: 'absolute',
+                top: '30%',
+                left: '0',
+                right: '0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 1002,
+                textAlign: 'center',
+                pointerEvents: 'none',
+                height: '20%',
+                overflow: 'hidden'
+              }}
+            >
+              {videoTexts.map((text, index) => {
+                const isActive = index === currentVideoIndex
+                const isPrev = index === currentVideoIndex - 1
+                const isNext = index === currentVideoIndex + 1
+
+                let translateY = 0
+                let scaleY = 1
+                let opacity = 0
+
+                if (isActive) {
+                  translateY = 0
+                  scaleY = 1
+                  opacity = 1
+                } else if (isPrev) {
+                  translateY = -50
+                  scaleY = 0
+                  opacity = 0
+                } else if (isNext) {
+                  translateY = 50
+                  scaleY = 0
+                  opacity = 0
+                } else if (index < currentVideoIndex) {
+                  translateY = -100
+                  scaleY = 0
+                  opacity = 0
+                } else {
+                  translateY = 100
+                  scaleY = 0
+                  opacity = 0
+                }
+
+                return (
+                  <motion.h2
+                    key={index}
+                    initial={{
+                      y: `${translateY}%`,
+                      scaleY: scaleY,
+                      opacity: opacity
+                    }}
+                    animate={{
+                      y: `${translateY}%`,
+                      scaleY: scaleY,
+                      opacity: opacity
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      ease: [0.25, 0, 0.1, 1]
+                    }}
+                    style={{
+                      position: 'absolute',
+                      fontSize: 'clamp(24px, 4vw, 48px)',
+                      fontWeight: '700',
+                      color: 'white',
+                      fontFamily: 'var(--font-style-script), cursive',
+                      textShadow: '0 4px 20px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.6)',
+                      lineHeight: '1.2',
+                      margin: 0,
+                      letterSpacing: '1px',
+                      transformOrigin: 'center',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {text}
+                  </motion.h2>
+                )
+              })}
+            </div>
+          )}
+
         </motion.div>
 
         {/* Happy Birthday text */}
@@ -405,7 +500,7 @@ const WishesSection: React.FC<WishesSectionProps> = ({
           <div
             style={{
               position: 'fixed',
-              top: '52%',
+              top: '54%',
               left: '0',
               right: '0',
               transform: 'translateY(-50%)',
@@ -413,7 +508,7 @@ const WishesSection: React.FC<WishesSectionProps> = ({
               fontSize: 'clamp(60px, 12vw, 200px)',
               fontWeight: '600',
               color: '#C9952F',
-              fontFamily: 'serif',
+              fontFamily: 'var(--font-smooch-sans), sans-serif',
               textAlign: 'center',
               lineHeight: '1',
               pointerEvents: 'none',

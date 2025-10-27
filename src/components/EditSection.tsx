@@ -9,32 +9,39 @@ const EditSection = () => {
   const [scrollProgress, setScrollProgress] = useState(0)
 
   useEffect(() => {
+    let ticking = false
+
     const handleScroll = () => {
-      if (!containerRef.current || !videoRef.current) return
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (!containerRef.current || !videoRef.current) {
+            ticking = false
+            return
+          }
 
-      const container = containerRef.current
-      const rect = container.getBoundingClientRect()
-      const containerHeight = container.offsetHeight
-      const windowHeight = window.innerHeight
+          const container = containerRef.current
+          const rect = container.getBoundingClientRect()
+          const windowHeight = window.innerHeight
 
-      // Only start calculating progress when section reaches top of viewport
-      if (rect.top > 0) {
-        setScrollProgress(0)
-        return
+          // Only start calculating progress when section reaches top of viewport
+          if (rect.top > 0) {
+            setScrollProgress(0)
+            ticking = false
+            return
+          }
+
+          // Use a fixed scroll distance for consistent animation timing
+          const scrollStart = Math.abs(rect.top)
+          const fixedScrollDistance = windowHeight * 1.5 // 150vh of scroll distance for animation
+          
+          // Progress from 0 to 1 over the fixed scroll distance
+          const progress = Math.min(1, Math.max(0, scrollStart / fixedScrollDistance))
+
+          setScrollProgress(progress)
+          ticking = false
+        })
+        ticking = true
       }
-
-      // Calculate scroll progress from when section hits top
-      const scrollStart = Math.abs(rect.top)
-      const scrollEnd = containerHeight - windowHeight
-      const scrollRange = scrollEnd
-
-      // Progress from 0 to 1 as user scrolls through the section
-      let progress = 0
-      if (scrollRange > 0) {
-        progress = Math.min(1, Math.max(0, scrollStart / scrollRange))
-      }
-
-      setScrollProgress(progress)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -43,7 +50,7 @@ const EditSection = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Determine scroll phases - start immediately
+  // Determine scroll phases
   const isExpandPhase = scrollProgress > 0 && scrollProgress < 0.4
   const isFullScreenPhase = scrollProgress >= 0.4 && scrollProgress < 0.5
   const isScrollUpPhase = scrollProgress >= 0.5
@@ -91,7 +98,7 @@ const EditSection = () => {
     <div
       ref={containerRef}
       style={{
-        minHeight: '300vh',
+        minHeight: '250vh',
         backgroundColor: '#940404',
         position: 'relative',
         zIndex: 100000,
@@ -270,104 +277,6 @@ const EditSection = () => {
         </motion.div>
       </div>
 
-      {/* Final Section - positioned at bottom */}
-      <div
-        style={{
-          minHeight: '100vh',
-          backgroundColor: '#FFFDFA',
-          position: 'absolute',
-          top: '200vh',
-          left: 0,
-          right: 0,
-          zIndex: 100001,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: '5%',
-        }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          style={{
-            textAlign: 'center',
-            maxWidth: '800px',
-          }}
-        >
-          {/* Main heading */}
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            style={{
-              fontSize: 'clamp(40px, 8vw, 80px)',
-              fontWeight: '600',
-              color: '#940404',
-              marginBottom: '30px',
-              fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
-              lineHeight: '1.1',
-            }}
-          >
-            Thank You
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            style={{
-              fontSize: 'clamp(18px, 3vw, 24px)',
-              fontWeight: '400',
-              color: '#333',
-              marginBottom: '40px',
-              fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
-              lineHeight: '1.6',
-            }}
-          >
-            For celebrating with Pastor Tru South King
-          </motion.p>
-
-          {/* Message */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            viewport={{ once: true }}
-            style={{
-              fontSize: '16px',
-              fontWeight: '400',
-              color: '#666',
-              lineHeight: '1.8',
-              fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
-            }}
-          >
-            <p>May this new year bring you continued blessings,</p>
-            <p>joy, and abundant grace in all your endeavors.</p>
-            <p>We are grateful for your leadership and dedication.</p>
-          </motion.div>
-
-          {/* Decorative element */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            viewport={{ once: true }}
-            style={{
-              marginTop: '50px',
-              width: '100px',
-              height: '2px',
-              backgroundColor: '#C9952F',
-              margin: '50px auto 0',
-            }}
-          />
-        </motion.div>
-      </div>
     </div>
   )
 }

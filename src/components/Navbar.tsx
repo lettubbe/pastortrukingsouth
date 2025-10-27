@@ -246,7 +246,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               fontWeight: '500', 
               color: 'white',
               margin: 0,
-              fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+              fontFamily: 'var(--font-smooch-sans), sans-serif',
               opacity: hasScrolled ? 0 : 1,
               transition: 'opacity 0.3s ease'
             }}

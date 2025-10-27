@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { Style_Script, Smooch_Sans } from "next/font/google";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -12,6 +13,18 @@ const geistMono = localFont({
   src: "../fonts/GeistMonoVF.woff",
   variable: "--font-geist-mono",
   weight: "100 900",
+});
+
+const styleScript = Style_Script({
+  subsets: ["latin"],
+  variable: "--font-style-script",
+  weight: "400",
+});
+
+const smoochSans = Smooch_Sans({
+  subsets: ["latin"],
+  variable: "--font-smooch-sans",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased m-0 p-0 w-screen h-screen overflow-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} ${styleScript.variable} ${smoochSans.variable} antialiased m-0 p-0 w-screen min-h-screen overflow-x-hidden`}
       >
         {children}
       </body>
