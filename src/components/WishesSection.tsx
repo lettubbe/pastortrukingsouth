@@ -104,17 +104,13 @@ const WishesSection: React.FC<WishesSectionProps> = ({
   const videos = [
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
     "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4"
+    "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
   ]
 
   const videoTexts = [
+    "Wife",
     "Wife&Kids",
-    "Mom&Dad", 
-    "Siblings",
-    "Close Friends",
-    "Colleagues"
+    "Family",
   ]
 
   return (
@@ -228,7 +224,7 @@ const WishesSection: React.FC<WishesSectionProps> = ({
               ? `calc(50vw - ${maxWidth / 2}vw)`
               : '0',
             transform: 'none',
-            zIndex: isScaleDownPhase && scaleDownProgress > 0 ? 1001 : (isSlidingPhase ? 1000 : 'auto'),
+            zIndex: isSlidingPhase ? 1000 : 'auto',
             margin: '0 auto'
           }}
         >
@@ -387,7 +383,7 @@ const WishesSection: React.FC<WishesSectionProps> = ({
                       ease: [0.25, 0, 0.1, 1]
                     }}
                     style={{
-                      position: 'absolute',
+                      position: 'fixed',
                       fontSize: 'clamp(24px, 4vw, 48px)',
                       fontWeight: '700',
                       color: 'white',
@@ -418,7 +414,7 @@ const WishesSection: React.FC<WishesSectionProps> = ({
               left: '0',
               right: '0',
               transform: 'translateY(-50%)',
-              zIndex: 999,
+              zIndex: 'auto',
               fontSize: 'clamp(80px, 12vw, 200px)',
               fontWeight: '700',
               color: 'black',
@@ -504,7 +500,7 @@ const WishesSection: React.FC<WishesSectionProps> = ({
               left: '0',
               right: '0',
               transform: 'translateY(-50%)',
-              zIndex: 999,
+              zIndex: 'auto',
               fontSize: 'clamp(60px, 12vw, 200px)',
               fontWeight: '600',
               color: '#C9952F',

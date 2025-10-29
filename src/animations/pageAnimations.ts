@@ -4,7 +4,6 @@ export const pageSwing = {
     x: isMenuOpen ? -120 : 0,
     rotateZ: isMenuOpen ? -8 : 0,
     scale: isMenuOpen ? 1.25 : 1,
-    transformOrigin: 'top left',
     transition: {
       duration: 0.8,
       ease: [0.6, 0, 0.4, 1] as any

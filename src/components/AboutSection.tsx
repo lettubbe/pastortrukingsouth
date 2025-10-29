@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-const ManOfTheDaySection = () => {
+const AboutSection = () => {
   const sectionRef = useRef<HTMLDivElement | null>(null)
   const [sectionScrollProgress, setSectionScrollProgress] = useState(0)
   const [animationStarted, setAnimationStarted] = useState(false)
@@ -110,13 +110,14 @@ const ManOfTheDaySection = () => {
       ref={sectionRef}
       style={{
         height: '300vh',
-        backgroundColor: '#FFFDFA',
+        backgroundColor: '#FFF3E6',
         position: 'relative',
         overflow: 'hidden',
         marginTop: '-80vh',
-        zIndex: 200000
+        zIndex: 1
       }}
     >
+      
       {/* Background layer - conditionally fixed */}
       <div
         style={{
@@ -126,7 +127,7 @@ const ManOfTheDaySection = () => {
           width: '100%',
           height: '100vh',
           zIndex: 1,
-          backgroundColor: '#FFFDFA',
+          backgroundColor: '#FFF3E6',
         }}
       >
         {/* Photos container - relative to this section */}
@@ -539,4 +540,4 @@ const ManOfTheDaySection = () => {
   )
 }
 
-export default ManOfTheDaySection
+export default AboutSection

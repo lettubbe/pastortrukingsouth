@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Double } from './Double';
 import Image from 'next/image';
 
@@ -23,10 +24,15 @@ const PostPage: React.FC = () => {
   const elementsRef = useRef<HTMLDivElement[]>([]);
   const videoRefs = useRef<HTMLVideoElement[]>([]);
   const mousePos = useRef({ x: 0, y: 0, relX: 0, relY: 0 });
+  const scrollOffset = useRef(0);
   const hoveredVideoRef = useRef<number | null>(null);
   const [isHovering, setIsHovering] = useState(false);
   const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
   const [fullscreenVideo, setFullscreenVideo] = useState<number | null>(null);
+  const [showPostOptions, setShowPostOptions] = useState(false);
+  const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0, width: 44, height: 44 });
+  const [isHoveringContent, setIsHoveringContent] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const videos: VideoElement[] = [
     { id: 1, title: "Adventure", thumbnail: 'https://picsum.photos/300/300?random=1', videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4', x: 15, y: 20, size: 120, color: '#ff6b6b' },
@@ -41,20 +47,74 @@ const PostPage: React.FC = () => {
 
   const postsData = [
     [
-      { src: 'studio.png', name: 'Studio Session', description: 'Behind the scenes of our latest recording session', year: '2024' },
-      { src: 'PRAISE.jpg', name: 'PRAISE', description: 'Our latest single release', year: '2024' }
+      { 
+        src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop', 
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        type: 'video' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.', 
+        date: '2 hours ago' 
+      },
+      { 
+        src: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop', 
+        type: 'image' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.', 
+        date: '1 day ago' 
+      }
     ],
     [
-      { src: 'PraiseNight.jpg', name: 'Praise Night', description: 'Live performance highlights', year: '2024' },
-      { src: 'about.jpg', name: 'About Us', description: 'Get to know the artist behind the music', year: '2024' }
+      { 
+        src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop',
+        type: 'text' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
+        date: '3 days ago',
+        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
+      },
+      { 
+        src: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop', 
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+        type: 'video' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.', 
+        date: '5 days ago' 
+      }
     ],
     [
-      { src: 'rahpathon.png', name: 'Rahpathon', description: 'Special event coverage', year: '2024' },
-      { src: 'studio.png', name: 'Studio Work', description: 'Creating new music', year: '2024' }
+      { 
+        src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop', 
+        audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+        type: 'audio' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.', 
+        date: '1 week ago' 
+      },
+      { 
+        src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=500&h=500&fit=crop', 
+        type: 'image' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
+        date: '1 week ago' 
+      }
     ],
     [
-      { src: 'about.jpg', name: 'Artist Profile', description: 'Connect with us', year: '2024' },
-      { src: 'PRAISE.jpg', name: 'Music', description: 'Our sound and style', year: '2024' }
+      { 
+        src: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop',
+        type: 'text' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.', 
+        date: '2 weeks ago',
+        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.'
+      },
+      { 
+        src: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500&h=500&fit=crop', 
+        audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+        type: 'audio' as const,
+        name: 'Lorem Ipsum', 
+        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.', 
+        date: '2 weeks ago' 
+      }
     ]
   ];
 
@@ -149,6 +209,31 @@ const PostPage: React.FC = () => {
     setFullscreenVideo(null);
   };
 
+  const handleCreatePostClick = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setButtonPosition({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        width: rect.width,
+        height: rect.height
+      });
+    }
+    setShowPostOptions(true);
+  };
+
+  useEffect(() => {
+    // Close modal when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showPostOptions && (event.target as HTMLElement).classList.contains('bg-opacity-50')) {
+        setShowPostOptions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showPostOptions]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -181,6 +266,13 @@ const PostPage: React.FC = () => {
         { y: 0, opacity: 1, duration: 1.5, ease: "power3.out", delay: 0.5 }
       );
     }
+
+    // Parallax scroll handler
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const parallaxSpeed = -1.5; // Videos move up faster than normal scroll
+      scrollOffset.current = scrollY * parallaxSpeed;
+    };
 
     // Mouse move handler with cursor tracking
     const handleMouseMove = (e: MouseEvent) => {
@@ -234,8 +326,8 @@ const PostPage: React.FC = () => {
             moveTowardCenter.x = (screenCenterX - currentCenterX) * 0.3;
             moveTowardCenter.y = (screenCenterY - currentCenterY) * 0.3;
           } else {
-            // Proximity-based scaling for non-hovered videos
-            if (distance < proximityRadius) {
+            // Proximity-based scaling for non-hovered videos (only when no video is hovered)
+            if (hoveredVideoRef.current === null && distance < proximityRadius) {
               scaleMultiplier = 1 + (1 - distance / proximityRadius) * 0.8;
             }
             
@@ -268,10 +360,10 @@ const PostPage: React.FC = () => {
             zIndex = 100;
           }
 
-          // Apply animations
+          // Apply animations (including parallax scroll offset)
           gsap.to(el, {
             x: finalX,
-            y: finalY,
+            y: finalY + scrollOffset.current,
             scale: scaleMultiplier,
             rotation: mousePos.current.relX * (10 + index * 3),
             zIndex: zIndex,
@@ -282,7 +374,7 @@ const PostPage: React.FC = () => {
         }
       });
 
-      // Title parallax
+      // Title parallax (mouse movement only, no scroll offset)
       if (titleRef.current) {
         gsap.to(titleRef.current, {
           x: mousePos.current.relX * -50,
@@ -296,17 +388,19 @@ const PostPage: React.FC = () => {
     };
 
     document.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     animateElements();
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
   return (
     <div className="relative w-screen overflow-x-hidden cursor-none" style={{ height: 'auto', minHeight: '100vh' }}>
       {/* First Section - Video Gallery */}
-      <div ref={containerRef} className="relative w-screen h-screen bg-gradient-to-br from-gray-50 to-gray-200">
+      <div ref={containerRef} className="relative w-screen h-screen bg-[#FFF3E6]">
         {/* Video Elements */}
         {videos.map((video, index) => (
           <div
@@ -370,7 +464,7 @@ const PostPage: React.FC = () => {
           ref={titleRef}
           className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0 pointer-events-none"
         >
-          <h1 className="text-5xl font-black text-gray-800 tracking-wider text-center">
+          <h1 className="text-5xl font-black text-black tracking-wider text-center" style={{ fontFamily: 'var(--font-style-script), cursive' }}>
             SAY SOMETHING
           </h1>
         </div>
@@ -378,29 +472,260 @@ const PostPage: React.FC = () => {
         {/* Custom cursor */}
         <div 
           ref={cursorRef}
-          className={`fixed w-5 h-5 bg-black/50 rounded-full pointer-events-none z-50 transition-transform duration-100 ease-out ${
-            isHovering ? 'scale-150 bg-black/80' : ''
+          className={`fixed pointer-events-none z-50 transition-all duration-200 ease-out ${
+            isHoveringContent 
+              ? 'bg-white rounded-lg w-[40px] flex justify-center shadow-lg' 
+              : `w-5 h-5 bg-black/50 rounded-full ${isHovering ? 'scale-150 bg-black/80' : ''}`
           }`}
-          style={{ transform: 'translate(-50%, -50%)' }}
-        />
+          style={{ 
+            transform: 'translate(-50%, -50%)',
+            fontFamily: 'var(--font-smooch-sans), system-ui, -apple-system, sans-serif'
+          }}
+        >
+          {isHoveringContent && (
+            <span className="text-sm font-medium text-black whitespace-nowrap">
+              click
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Second Section - Posts */}
-      <div className="relative w-full bg-white py-16">
+      <div className="relative w-full bg-[#FFF3E6] py-16">
         <div className="mx-auto px-8">
-          <h2 className="text-4xl font-bold text-black mb-12 text-center">
-            Posts
-          </h2>
+          {/* Create Post Section */}
+          <div className="flex items-center justify-center mb-12">
+            <div className="flex items-center gap-4" style={{ padding: '16px 24px', marginBottom: '16px' }}>
+              <span className="text-lg font-medium text-gray-700">Say something about Pst. Tru South</span>
+              <div className="relative">
+                <button
+                  ref={buttonRef}
+                  onClick={handleCreatePostClick}
+                  className="bg-black text-white rounded-sm flex items-center justify-center hover:bg-gray-800 transition-all duration-200 text-xl font-light hover:scale-105 shadow-md"
+                  style={{ width: '44px', height: '44px', padding: '8px' }}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+          </div>
           
           {/* Series of Double components */}
           <div className="space-y-8">
-            <Double projects={[postsData[0][0], postsData[0][1]]} />
-            <Double projects={[postsData[1][0], postsData[1][1]]} reversed={true} />
-            <Double projects={[postsData[2][0], postsData[2][1]]} />
-            <Double projects={[postsData[3][0], postsData[3][1]]} reversed={true} />
+            <Double projects={[postsData[0][0], postsData[0][1]]} onContentHover={setIsHoveringContent} />
+            <Double projects={[postsData[1][0], postsData[1][1]]} reversed={true} onContentHover={setIsHoveringContent} />
+            <Double projects={[postsData[2][0], postsData[2][1]]} onContentHover={setIsHoveringContent} />
+            <Double projects={[postsData[3][0], postsData[3][1]]} reversed={true} onContentHover={setIsHoveringContent} />
           </div>
         </div>
       </div>
+
+      {/* Create Post Modal */}
+      <AnimatePresence>
+        {showPostOptions && (
+          <motion.div 
+            className="fixed inset-0 flex items-center justify-center z-[1000]"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowPostOptions(false);
+              }
+            }}
+          >
+            <motion.div 
+              className="rounded-2xl max-w-lg w-full mx-4 shadow-2xl"
+              initial={{ 
+                scale: buttonPosition.width / 400, // Start at button size relative to modal width
+                opacity: 1,
+                x: buttonPosition.x - window.innerWidth / 2,
+                y: buttonPosition.y - window.innerHeight / 2,
+                borderRadius: '50%'
+              }}
+              animate={{ 
+                scale: 1, 
+                opacity: 1, 
+                x: 0, 
+                y: 0,
+                borderRadius: '16px'
+              }}
+              exit={{ 
+                scale: buttonPosition.width / 400,
+                opacity: 1,
+                x: buttonPosition.x - window.innerWidth / 2,
+                y: buttonPosition.y - window.innerHeight / 2,
+                borderRadius: '50%'
+              }}
+              transition={{ 
+                type: "spring",
+                stiffness: 400,
+                damping: 35,
+                duration: 0.4
+              }}
+              style={{ 
+                backgroundColor: '#FFFDFA',
+                fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+                padding: '40px'
+              }}
+            >
+            <motion.div 
+              className="flex items-center justify-between mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+            >
+              <h3 
+                className="text-3xl font-bold text-black"
+                style={{ fontFamily: 'var(--font-style-script), cursive' }}
+              >
+                Create New Post
+              </h3>
+              <button
+                onClick={() => setShowPostOptions(false)}
+                className="text-gray-400 hover:text-black text-3xl font-light transition-colors duration-200 w-8 h-8 flex items-center justify-center"
+              >
+                ×
+              </button>
+            </motion.div>
+            
+            <motion.p 
+              className="text-xs text-gray-700 mb-10" 
+              style={{ fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif', marginBottom: '14px' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.25, duration: 0.3 }}
+            >
+              Choose the type of content you'd like to share:
+            </motion.p>
+            
+            <motion.div 
+              className="grid grid-cols-2 gap-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
+            >
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.35, duration: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  console.log('Video post selected');
+                  setShowPostOptions(false);
+                }}
+                className="flex flex-col items-center rounded-md"
+                style={{ 
+                  backgroundColor: '#FFF3E6',
+                  fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+                  padding: '32px 24px'
+                }}
+              >
+                <Image
+                  src="/icons/video.svg"
+                  alt="Video"
+                  width={48}
+                  height={48}
+                  className="mb-4 group-hover:scale-110 transition-transform duration-200"
+                />
+                <span className="font-semibold text-lg text-gray-700 group-hover:text-black">Video</span>
+              </motion.button>
+              
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.4, duration: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  console.log('Picture post selected');
+                  setShowPostOptions(false);
+                }}
+                className="flex flex-col items-center rounded-md"
+                style={{ 
+                  backgroundColor: '#FFF3E6',
+                  fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+                  padding: '32px 24px'
+                }}
+              >
+                <Image
+                  src="/icons/image.svg"
+                  alt="Picture"
+                  width={48}
+                  height={48}
+                  className="mb-4 group-hover:scale-110 transition-transform duration-100"
+                />
+                <span className="font-semibold text-lg text-gray-700 group-hover:text-black">Picture</span>
+              </motion.button>
+              
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.45, duration: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  console.log('Audio post selected');
+                  setShowPostOptions(false);
+                }}
+                className="flex flex-col items-center rounded-md"
+                style={{ 
+                  backgroundColor: '#FFF3E6',
+                  fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+                  padding: '32px 24px'
+                }}
+              >
+                <Image
+                  src="/icons/audio.svg"
+                  alt="Audio"
+                  width={48}
+                  height={48}
+                  className="mb-4 group-hover:scale-110 transition-transform duration-200"
+                />
+                <span className="font-semibold text-lg text-gray-700 group-hover:text-black">Audio</span>
+              </motion.button>
+              
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.5, duration: 0.2 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  console.log('Text post selected');
+                  setShowPostOptions(false);
+                }}
+                className="flex flex-col items-center rounded-md"
+                style={{ 
+                  backgroundColor: '#FFF3E6',
+                  fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+                  padding: '32px 24px'
+                }}
+              >
+                <Image
+                  src="/icons/text.svg"
+                  alt="Text"
+                  width={48}
+                  height={48}
+                  className="mb-4 group-hover:scale-110 transition-transform duration-200"
+                />
+                <span className="font-semibold text-lg text-gray-700 group-hover:text-black">Text</span>
+              </motion.button>
+            </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Fullscreen Video Controls */}
       {fullscreenVideo && (

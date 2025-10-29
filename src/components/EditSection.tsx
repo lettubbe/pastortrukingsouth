@@ -33,7 +33,7 @@ const EditSection = () => {
           // Use a fixed scroll distance for consistent animation timing
           const scrollStart = Math.abs(rect.top)
           const fixedScrollDistance = windowHeight * 1.5 // 150vh of scroll distance for animation
-          
+
           // Progress from 0 to 1 over the fixed scroll distance
           const progress = Math.min(1, Math.max(0, scrollStart / fixedScrollDistance))
 
@@ -96,12 +96,13 @@ const EditSection = () => {
 
   return (
     <div
+      id="about"
       ref={containerRef}
       style={{
         minHeight: '250vh',
-        backgroundColor: '#940404',
+        backgroundColor: '#660033',
         position: 'relative',
-        zIndex: 100000,
+        zIndex: 1,
       }}
     >
 
@@ -113,7 +114,7 @@ const EditSection = () => {
         right: 0,
         bottom: (isExpandPhase || isFullScreenPhase || isScrollUpPhase) ? 0 : 'auto',
         height: (isExpandPhase || isFullScreenPhase || isScrollUpPhase) ? '100vh' : '100%',
-        backgroundColor: 'rgba(0, 0, 0, 0.4)',
+        backgroundColor: 'rgba(0, 0, 0, 0.35)',
         pointerEvents: 'none',
         zIndex: 1,
       }} />

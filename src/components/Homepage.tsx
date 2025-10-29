@@ -8,16 +8,18 @@ import Preloader from './Preloader'
 import { HeroSection } from './HeroSection'
 import WishesSection from './WishesSection'
 import EditSection from './EditSection'
-import ManOfTheDaySection from './ManOfTheDaySection'
+import AboutSection from './AboutSection'
 import AudioControl from './AudioControl'
 import { pageSwing, pageEntrance } from '../animations/pageAnimations'
 import { useBackgroundAudio } from '../hooks/useBackgroundAudio'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const HomePage = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showPreloader, setShowPreloader] = useState(true);
   const [pageAnimationStarted, setPageAnimationStarted] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const [transformOrigin, setTransformOrigin] = useState('50% 50vh');
+  const isMobile = useMediaQuery('(max-width: 1024px)');
 
   // Background audio
   const { isMuted, hasUserInteracted, toggleMute, pauseTemporarily, resumeAudio } = useBackgroundAudio();
@@ -25,6 +27,16 @@ const HomePage = () => {
   const handlePreloaderComplete = () => {
     setPageAnimationStarted(true);
     setTimeout(() => setShowPreloader(false), 1200); // Hide preloader after animation
+  };
+
+  const handleMenuToggle = (menuState: boolean) => {
+    if (menuState) {
+      // Capture current viewport center in page coordinates
+      const scrollY = window.scrollY;
+      const viewportCenterY = scrollY + (window.innerHeight / 2);
+      setTransformOrigin(`50% ${viewportCenterY}px`);
+    }
+    setIsMenuOpen(menuState);
   };
 
   useEffect(() => {
@@ -37,24 +49,13 @@ const HomePage = () => {
 
     requestAnimationFrame(raf);
 
-    // Check for mobile device
-    const checkMobile = () => {
-      const mobile = window.innerWidth <= 1024;
-      console.log('Mobile check:', mobile, 'Width:', window.innerWidth);
-      setIsMobile(mobile);
-    };
-    
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
 
     // Scroll to top on load
     setTimeout(() => {
       window.scrollTo(0, 0);
     }, 100);
 
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
+    return () => {};
   }, []);
 
   return (
@@ -80,14 +81,15 @@ const HomePage = () => {
           transformOrigin: 'top left'
         }}
       >
-        <Navbar onMenuToggle={setIsMenuOpen} pageAnimationStarted={pageAnimationStarted} />
+        <Navbar onMenuToggle={handleMenuToggle} pageAnimationStarted={pageAnimationStarted} />
 
         <motion.div
           variants={pageSwing}
           animate="animate"
           custom={isMenuOpen}
           style={{
-            width: '100%'
+            width: '100%',
+            transformOrigin: transformOrigin
           }}
         >
           <HeroSection pageAnimationStarted={pageAnimationStarted} />
@@ -99,7 +101,7 @@ const HomePage = () => {
 
           <EditSection />
 
-          <ManOfTheDaySection />
+          <AboutSection />
         </motion.div>
       </motion.div>
     </div>

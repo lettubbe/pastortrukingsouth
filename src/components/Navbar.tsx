@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { WordStagger } from './TextAnimations';
 
 // CSS styles for responsive design
@@ -117,7 +118,7 @@ const blur = {
 };
 
 const mainLinks = [
-  { title: "About", href: "/about", media: { type: "gif", src: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif" } },
+  { title: "About", href: "#about", media: { type: "gif", src: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif" } },
   { title: "Say something", href: "/post", media: { type: "gif", src: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" } },
   { title: "BTS", href: "/behindthescenes", media: { type: "gif", src: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif" } }
 ];
@@ -188,10 +189,18 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState({ isActive: false, index: 0 });
   const [hasScrolled, setHasScrolled] = useState(false);
+  const [showLogo, setShowLogo] = useState(false);
+  const [isOverHero, setIsOverHero] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
-      setHasScrolled(window.scrollY > 50);
+      const scrollY = window.scrollY;
+      setHasScrolled(scrollY > 50);
+      setShowLogo(scrollY > 200);
+      
+      // Hero section is 160vh tall, so approximately 160% of viewport height
+      const heroHeight = window.innerHeight * 1.6;
+      setIsOverHero(scrollY < heroHeight - 100); // Add buffer for transition
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -239,7 +248,8 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
         alignItems: 'center'
       }}>
         {/* Logo */}
-        <div style={{ zIndex: 50, overflow: 'hidden' }}>
+        <div style={{ zIndex: 50, overflow: 'hidden', position: 'relative' }}>
+          {/* Text Logo */}
           <h1 
             className="navbar-logo"
             style={{ 
@@ -248,7 +258,8 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               margin: 0,
               fontFamily: 'var(--font-smooch-sans), sans-serif',
               opacity: hasScrolled ? 0 : 1,
-              transition: 'opacity 0.3s ease'
+              transition: 'opacity 0.4s ease',
+              position: 'relative'
             }}
           >
             <WordStagger 
@@ -257,6 +268,31 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               startDelay={0}
             />
           </h1>
+          
+          {/* Coin Logo */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: 0,
+              transform: 'translateY(-50%)',
+              opacity: showLogo ? 1 : 0,
+              transition: 'opacity 0.4s ease, transform 0.4s ease',
+              transformOrigin: 'center'
+            }}
+          >
+            <Image
+              src="/images/coinLogo.png"
+              alt="Tru South King Logo"
+              width={40}
+              height={40}
+              style={{
+                objectFit: 'contain',
+                transform: showLogo ? 'scale(1)' : 'scale(0.8)',
+                transition: 'transform 0.4s ease'
+              }}
+            />
+          </div>
         </div>
 
         {/* Hamburger Menu Button */}
@@ -286,12 +322,13 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{ 
                 fontSize: '14px', 
                 fontWeight: '500', 
-                color: 'white',
+                color: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
                 position: 'absolute',
                 top: '-18%',
                 left: '0%',
                 transform: 'translate(-50%, -50%)',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                transition: 'color 0.3s ease'
               }}
               animate={{
                 y: isMenuOpen ? -30 : 0,
@@ -305,12 +342,13 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{ 
                 fontSize: '14px', 
                 fontWeight: '500', 
-                color: 'white',
+                color: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
                 position: 'absolute',
                 top: '-18%',
                 left: '0%',
                 transform: 'translate(-50%, -50%)',
-                whiteSpace: 'nowrap'
+                whiteSpace: 'nowrap',
+                transition: 'color 0.3s ease'
               }}
               initial={{ y: 30, opacity: 0 }}
               animate={{
@@ -327,9 +365,10 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{
                 width: '24px',
                 height: '2px',
-                backgroundColor: 'white',
+                backgroundColor: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
                 marginBottom: isMenuOpen ? 0 : '4px',
-                transformOrigin: 'center'
+                transformOrigin: 'center',
+                transition: 'background-color 0.3s ease'
               }}
               animate={{
                 rotate: isMenuOpen ? 45 : 0,
@@ -341,9 +380,10 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{
                 width: '24px',
                 height: '2px',
-                backgroundColor: 'white',
+                backgroundColor: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
                 marginTop: isMenuOpen ? 0 : '4px',
-                transformOrigin: 'center'
+                transformOrigin: 'center',
+                transition: 'background-color 0.3s ease'
               }}
               animate={{
                 rotate: isMenuOpen ? -45 : 0,
@@ -370,7 +410,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               left: 0,
               width: '100%',
               height: '100vh',
-              backgroundColor: 'black',
+              backgroundColor: '#0D1117',
               overflow: 'hidden',
               zIndex: 40,
               transformOrigin: 'top',
@@ -433,7 +473,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
                     style={{
                       fontWeight: '300',
                       textTransform: 'uppercase',
-                      color: 'white',
+                      color: '#FFF3E6',
                       margin: 0,
                       overflow: 'hidden',
                       fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif'

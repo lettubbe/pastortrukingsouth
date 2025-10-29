@@ -58,13 +58,13 @@ export const useVideoScrollProgress = () => {
         // Phase 2: Fullscreen sliding between videos
         setVideoProgress(1)
         const slidingProgress = (containerProgress - scaleUpThreshold) / (scaleDownThreshold - scaleUpThreshold)
-        const videoIndex = Math.floor(slidingProgress * 5) // Videos 0-4
-        setCurrentVideoIndex(Math.min(4, videoIndex))
+        const videoIndex = Math.floor(slidingProgress * 3) // Videos 0-2
+        setCurrentVideoIndex(Math.min(2, videoIndex))
       }
       else {
         // Phase 3: Scale down carousel, stay on last video
         setVideoProgress(1)
-        setCurrentVideoIndex(4)
+        setCurrentVideoIndex(2)
       }
     }
 
