@@ -5,6 +5,18 @@ html {
   scroll-behavior: auto !important;
 }
 
+/* Hide scrollbars while keeping scroll functionality */
+.hide-scrollbar {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -38,4 +50,12 @@ body {
   /* Prevent bounce effect on iOS */
   overscroll-behavior: none;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+}
+
+/* Prevent scrolling during initial load */
+body.loading {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
 }

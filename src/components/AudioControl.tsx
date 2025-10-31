@@ -5,20 +5,21 @@ import { motion } from 'framer-motion';
 
 interface AudioControlProps {
   isMuted: boolean;
-  onToggleMute: () => void;
+  toggleMute: () => void;
   hasUserInteracted: boolean;
+  pageAnimationStarted: boolean;
 }
 
 const AudioControl: React.FC<AudioControlProps> = ({
   isMuted,
-  onToggleMute,
-  hasUserInteracted
+  toggleMute,
+  hasUserInteracted,
+  pageAnimationStarted
 }) => {
-  console.log('AudioControl rendering:', { isMuted, hasUserInteracted });
 
   return (
     <motion.button
-      onClick={onToggleMute}
+      onClick={toggleMute}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{
         opacity: hasUserInteracted ? 1 : 0.7,

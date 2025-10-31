@@ -9,9 +9,8 @@ import { HeroSection } from './HeroSection'
 import WishesSection from './WishesSection'
 import EditSection from './EditSection'
 import AboutSection from './AboutSection'
-import AudioControl from './AudioControl'
 import { pageSwing, pageEntrance } from '../animations/pageAnimations'
-import { useBackgroundAudio } from '../hooks/useBackgroundAudio'
+import { useAudioContext } from '../providers/AudioProvider'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const HomePage = () => {
@@ -21,13 +20,21 @@ const HomePage = () => {
   const [transformOrigin, setTransformOrigin] = useState('50% 50vh');
   const isMobile = useMediaQuery('(max-width: 1024px)');
 
-  // Background audio
-  const { isMuted, hasUserInteracted, toggleMute, pauseTemporarily, resumeAudio } = useBackgroundAudio();
+  // Background audio from global context
+  const { pauseTemporarily, resumeAudio } = useAudioContext();
 
   const handlePreloaderComplete = () => {
     setPageAnimationStarted(true);
     setTimeout(() => setShowPreloader(false), 1200); // Hide preloader after animation
   };
+
+  // Prevent scrolling during preloader
+  useEffect(() => {
+    if (!showPreloader) {
+      // Remove loading class when preloader is done
+      document.body.classList.remove('loading');
+    }
+  }, [showPreloader]);
 
   const handleMenuToggle = (menuState: boolean) => {
     if (menuState) {
@@ -40,15 +47,21 @@ const HomePage = () => {
   };
 
   useEffect(() => {
-    const lenis = new Lenis();
+    // Only initialize Lenis after preloader is done
+    if (!showPreloader) {
+      const lenis = new Lenis();
 
-    function raf(time: number) {
-      lenis.raf(time);
+      function raf(time: number) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+
       requestAnimationFrame(raf);
+
+      return () => {
+        lenis.destroy();
+      };
     }
-
-    requestAnimationFrame(raf);
-
 
     // Scroll to top on load
     setTimeout(() => {
@@ -56,18 +69,12 @@ const HomePage = () => {
     }, 100);
 
     return () => {};
-  }, []);
+  }, [showPreloader]);
 
   return (
     <div style={{ position: 'relative' }}>
       {showPreloader && <Preloader onComplete={handlePreloaderComplete} isExiting={pageAnimationStarted} />}
 
-      {/* Audio Control Button */}
-      <AudioControl
-        isMuted={isMuted}
-        onToggleMute={toggleMute}
-        hasUserInteracted={hasUserInteracted}
-      />
 
       <motion.div
         variants={pageEntrance}
@@ -94,10 +101,7 @@ const HomePage = () => {
         >
           <HeroSection pageAnimationStarted={pageAnimationStarted} />
 
-          <WishesSection
-            onPauseBackgroundAudio={pauseTemporarily}
-            onResumeBackgroundAudio={resumeAudio}
-          />
+          <WishesSection />
 
           <EditSection />
 

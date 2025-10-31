@@ -10,6 +10,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
   const heroRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backgroundParallax, setBackgroundParallax] = useState(0);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,18 +41,37 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
       
       const backgroundProgress = parallaxRange > 0 ? Math.min(Math.max((scrollY - parallaxStart) / parallaxRange, 0), 1) : 0;
       
-      setScrollProgress(progress);
-      setBackgroundParallax(backgroundProgress);
+      // Only update if values have actually changed or on first initialization
+      if (!isInitialized || Math.abs(progress - scrollProgress) > 0.001 || Math.abs(backgroundProgress - backgroundParallax) > 0.001) {
+        setScrollProgress(progress);
+        setBackgroundParallax(backgroundProgress);
+        if (!isInitialized) setIsInitialized(true);
+      }
     };
 
     // Use native scroll event for smooth scrolling
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial calculation
+    
+    // Multiple initialization attempts to ensure proper calculation
+    const initializeScroll = () => {
+      handleScroll();
+    };
+    
+    // Immediate calculation
+    initializeScroll();
+    
+    // Additional calculations with delays to handle mobile layout settling
+    const timeouts = [
+      setTimeout(initializeScroll, 50),
+      setTimeout(initializeScroll, 100),
+      setTimeout(initializeScroll, 200)
+    ];
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      timeouts.forEach(clearTimeout);
     };
-  }, []);
+  }, [scrollProgress, backgroundParallax, isInitialized]);
 
   return (
     <motion.div
@@ -71,7 +91,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
           left: 0,
           width: '100%',
           height: '100vh',
-          backgroundImage: 'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80)',
+          backgroundImage: 'url(/images/hero.svg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
@@ -115,7 +135,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
             overflow: 'hidden'
           }}>
             <FadeText 
-              text="Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim."
+              text="The people which sat in darkness saw great light; And to them which sat in the region and shadow of death Light is sprung up."
               pageAnimationStarted={pageAnimationStarted}
               scrollProgress={scrollProgress}
               fadeOnScroll={true}
@@ -139,7 +159,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
               overflow: 'hidden'
             }}>
               <AnimatedChars 
-                word="Lorem"
+                word="Impact."
                 pageAnimationStarted={pageAnimationStarted}
                 scrollProgress={scrollProgress}
               />
@@ -154,7 +174,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
               overflow: 'hidden'
             }}>
               <AnimatedChars 
-                word="ipsum"
+                word="Activism."
                 pageAnimationStarted={pageAnimationStarted}
                 scrollProgress={scrollProgress}
               />
@@ -169,7 +189,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
               overflow: 'hidden'
             }}>
               <AnimatedChars 
-                word="consectetur"
+                word="Liquid Love."
                 pageAnimationStarted={pageAnimationStarted}
                 scrollProgress={scrollProgress}
               />
@@ -187,7 +207,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
             overflow: 'hidden'
           }}>
             <FadeText 
-              text="Ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+              text="In every generation, God raises a voice that doesn’t just preach the gospel but burns with intensity, drawing many into the light of God's TRUTH wherever they go. Pastor Tru South is that voice, a man of unwavering faith, a beacon of hope for justice, and a vessel through whom God's divine love flows freely. His life is an open testament to the divine life, the pursuit of excellence, and the tangible results that faith in God can bring."
               pageAnimationStarted={pageAnimationStarted}
               scrollProgress={scrollProgress}
               fadeOnScroll={false}

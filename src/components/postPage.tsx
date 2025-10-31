@@ -4,7 +4,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Double } from './Double';
+import { PostCreationForm } from './PostCreationForm';
+import { PostsSkeleton, EmptyPosts } from './PostsSkeleton';
+import { 
+  usePostsQuery, 
+  useAllPosts, 
+  transformPostToProject 
+} from '@/hooks/usePostsQuery';
 import Image from 'next/image';
+import Navbar from './Navbar';
+import Preloader from './Preloader';
+import { pageSwing, pageEntrance } from '../animations/pageAnimations';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 interface VideoElement {
   id: number;
@@ -16,6 +27,8 @@ interface VideoElement {
   size: number;
   color: string;
 }
+
+type PostType = 'video' | 'photo' | 'audio' | 'text';
 
 const PostPage: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -30,93 +43,317 @@ const PostPage: React.FC = () => {
   const [hoveredVideo, setHoveredVideo] = useState<number | null>(null);
   const [fullscreenVideo, setFullscreenVideo] = useState<number | null>(null);
   const [showPostOptions, setShowPostOptions] = useState(false);
+  const [showPostForm, setShowPostForm] = useState(false);
+  const [selectedPostType, setSelectedPostType] = useState<PostType>('text');
   const [buttonPosition, setButtonPosition] = useState({ x: 0, y: 0, width: 44, height: 44 });
   const [isHoveringContent, setIsHoveringContent] = useState(false);
+  const [videoThumbnails, setVideoThumbnails] = useState<{[key: number]: string}>({});
   const buttonRef = useRef<HTMLButtonElement>(null);
+  
+  // Preloader and page animation state
+  const [showPreloader, setShowPreloader] = useState(true);
+  const [pageAnimationStarted, setPageAnimationStarted] = useState(false);
+  const [transformOrigin, setTransformOrigin] = useState('50% 50vh');
+  const isMobile = useMediaQuery('(max-width: 1024px)');
+  
+  
+  // hooks for posts data
+  const { 
+    data, 
+    isLoading, 
+    isError, 
+    error, 
+    hasNextPage, 
+    fetchNextPage, 
+    isFetchingNextPage,
+    refetch
+  } = usePostsQuery({ limit: 10, sortBy: 'newest' });
+  
+  const serverPosts = useAllPosts({ limit: 10, sortBy: 'newest' });
+  
+  // Create S3 posts from videos (without duplicates from the video gallery)
+  const s3Posts = [
+    {
+      _id: 'wife-testimony',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Ms.+UpgradeMain%5Bwife%5D.mp4',
+      thumbnail: '/images/thumbnails/wife.png',
+      caption: 'Wife',
+      authorName: 'Ms. Upgrade',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'wife-kids-testimony',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/wife%26kids.mp4',
+      thumbnail: '/images/thumbnails/wife&kids.png',
+      caption: 'Wife & Kids',
+      authorName: 'Ms. Upgrade | Levi | Haven',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'pastor-israel-testimony',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Pastor+Israel+Atima+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Pst Isreal.png',
+      caption: 'Pastor Israel',
+      authorName: 'Pastor Israel',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'tb1-testimony',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/TB1.mov',
+      thumbnail: '/images/thumbnails/TB1.png',
+      caption: 'TB1',
+      authorName: 'TB1',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'protek-testimony',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Protek.mp4',
+      thumbnail: '/images/thumbnails/Protek.png',
+      caption: 'Protek',
+      authorName: 'Protek',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'peddygree-testimony',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Peddygree.mov',
+      thumbnail: '/images/thumbnails/Peddygree.png',
+      caption: 'Peddygree',
+      authorName: 'Peddygree',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    }
+  ];
+  
+  //  "thoughts" posts
+  const thoughtsPosts = [    
+    {
+      _id: 'sis-esther-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Esther+Atima+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/EstherAtima.png',
+      caption: 'Sis Esther Atima',
+      authorName: 'Sis Esther Atima',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-adrian-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Adrian+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Adrian.png',
+      caption: 'Bro Adrian',
+      authorName: 'Bro Adrian',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-alex-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Alex+Obilor+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Alex Obilor.png',
+      caption: 'Bro Alex Obilor',
+      authorName: 'Bro Alex Obilor',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-augustine-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Augustine+Duru+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Augustine.png',
+      caption: 'Bro Augustine Duru',
+      authorName: 'Bro Augustine Duru',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-dominion-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Dominion+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Dominion.png',
+      caption: 'Bro Dominion',
+      authorName: 'Bro Dominion',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-rj-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+RJ+Ozioma+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/RJ Ozioma.png',
+      caption: 'Bro RJ Ozioma',
+      authorName: 'Bro RJ Ozioma',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-ekene-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Ekene+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Ekene.png',
+      caption: 'Bro Ekene',
+      authorName: 'Bro Ekene',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-francis-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Francis+Ugochukwu+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Fransis Ugochukwu.png',
+      caption: 'Bro Francis Ugochukwu',
+      authorName: 'Bro Francis Ugochukwu',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-nolly-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Nolly+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Nolly.png',
+      caption: 'Bro Nolly',
+      authorName: 'Bro Nolly',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-onyedi-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Onyedi+Richard+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/onyediRichard.png',
+      caption: 'Bro Onyedi Richard',
+      authorName: 'Bro Onyedi Richard',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-samuel-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Samuel+Yaqub-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Samuel Yaqub.png',
+      caption: 'Bro Samuel Yaqub',
+      authorName: 'Bro Samuel Yaqub',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-victor-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Victor+Daniel+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Victor Daniel.png',
+      caption: 'Bro Victor Daniel',
+      authorName: 'Bro Victor Daniel',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'bro-wisdom-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Wisdom+Saint-Charles+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Wisdom Saint-Charles.png',
+      caption: 'Bro Wisdom Saint-Charles',
+      authorName: 'Bro Wisdom Saint-Charles',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'sis-adora-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Adora+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Adora.png',
+      caption: 'Sis Adora',
+      authorName: 'Sis Adora',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'sis-ver-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Ver+Elechi+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Ver Elechi.png',
+      caption: 'Sis Ver Elechi',
+      authorName: 'Sis Ver Elechi',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'sis-winifred-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Winifred+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/Winifred.png',
+      caption: 'Sis Winifred',
+      authorName: 'Sis Winifred',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    },
+    {
+      _id: 'sisi-mirabelle-thoughts',
+      type: 'video' as const,
+      mediaUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sisi+Mirabelle+Macanson+-+HBD+P.TSK.mp4',
+      thumbnail: '/images/thumbnails/MirabelleMacanson.png',
+      caption: 'Sisi Mirabelle Macanson',
+      authorName: 'Sisi Mirabelle Macanson',
+      createdAt: new Date().toISOString(),
+      moderationStatus: 'approved' as const
+    }
+  ];
+  
+  // Combine all posts: S3 posts first, then thoughts posts, then server posts
+  const posts = [...s3Posts, ...thoughtsPosts, ...serverPosts];
+  
+  // Debug logging
+  console.log('Posts data:', { posts, isLoading, isError, data });
+
+
+  const handlePreloaderComplete = () => {
+    setPageAnimationStarted(true);
+    setTimeout(() => setShowPreloader(false), 1200); // Hide preloader after animation
+  };
+
+  // Prevent scrolling during preloader
+  useEffect(() => {
+    if (!showPreloader) {
+      // Remove loading class when preloader is done
+      document.body.classList.remove('loading');
+    }
+  }, [showPreloader]);
 
   const videos: VideoElement[] = [
-    { id: 1, title: "Adventure", thumbnail: 'https://picsum.photos/300/300?random=1', videoUrl: 'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4', x: 15, y: 20, size: 120, color: '#ff6b6b' },
-    { id: 2, title: "Nature", thumbnail: 'https://picsum.photos/300/300?random=2', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', x: 85, y: 25, size: 100, color: '#4ecdc4' },
-    { id: 3, title: "City", thumbnail: 'https://picsum.photos/300/300?random=3', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', x: 10, y: 75, size: 140, color: '#45b7d1' },
-    { id: 4, title: "Ocean", thumbnail: 'https://picsum.photos/300/300?random=4', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', x: 90, y: 80, size: 110, color: '#96ceb4' },
-    { id: 5, title: "Mountain", thumbnail: 'https://picsum.photos/300/300?random=5', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', x: 75, y: 10, size: 130, color: '#ffeaa7' },
-    { id: 6, title: "Space", thumbnail: 'https://picsum.photos/300/300?random=6', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', x: 80, y: 60, size: 90, color: '#fd79a8' },
-    { id: 7, title: "Forest", thumbnail: 'https://picsum.photos/300/300?random=7', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4', x: 30, y: 90, size: 80, color: '#a29bfe' },
-    { id: 8, title: "Desert", thumbnail: 'https://picsum.photos/300/300?random=8', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4', x: 20, y: 45, size: 160, color: '#fd7f28' }
+    { id: 1, title: "Wife", thumbnail: '/images/thumbnails/wife.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Ms.+UpgradeMain%5Bwife%5D.mp4', x: 15, y: 20, size: 120, color: '#ff6b6b' },
+    { id: 2, title: "Wife&Kids", thumbnail: '/images/thumbnails/wife&kids.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/wife%26kids.mp4', x: 85, y: 25, size: 100, color: '#4ecdc4' },
+    { id: 3, title: "Brother", thumbnail: '/images/thumbnails/Pst Isreal.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Pastor+Israel+Atima+-+HBD+P.TSK.mp4', x: 10, y: 75, size: 140, color: '#45b7d1' },
+    { id: 4, title: "TB1", thumbnail: '/images/thumbnails/TB1.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/TB1.mov', x: 90, y: 80, size: 110, color: '#96ceb4' },
+    { id: 5, title: "Protek", thumbnail: '/images/thumbnails/Protek.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Protek.mp4', x: 75, y: 10, size: 130, color: '#ffeaa7' },
+    { id: 6, title: "Peddygree", thumbnail: '/images/thumbnails/Peddygree.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Peddygree.mov', x: 80, y: 60, size: 90, color: '#fd79a8' },
+    { id: 7, title: "Bro Adrian", thumbnail: '/images/thumbnails/Adrian.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Bro+Adrian+-+HBD+P.TSK.mp4', x: 30, y: 90, size: 80, color: '#a29bfe' },
+    { id: 8, title: "Sis Esther Atima", thumbnail: '/images/thumbnails/EstherAtima.png', videoUrl: 'https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Esther+Atima+-+HBD+P.TSK.mp4', x: 20, y: 45, size: 160, color: '#fd7f28' }
   ];
 
-  const postsData = [
-    [
-      { 
-        src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop', 
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-        type: 'video' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor.', 
-        date: '2 hours ago' 
-      },
-      { 
-        src: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=500&fit=crop', 
-        type: 'image' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.', 
-        date: '1 day ago' 
-      }
-    ],
-    [
-      { 
-        src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop',
-        type: 'text' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
-        date: '3 days ago',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'
-      },
-      { 
-        src: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&h=500&fit=crop', 
-        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-        type: 'video' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.', 
-        date: '5 days ago' 
-      }
-    ],
-    [
-      { 
-        src: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=500&h=500&fit=crop', 
-        audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-        type: 'audio' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.', 
-        date: '1 week ago' 
-      },
-      { 
-        src: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=500&h=500&fit=crop', 
-        type: 'image' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.', 
-        date: '1 week ago' 
-      }
-    ],
-    [
-      { 
-        src: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&h=500&fit=crop',
-        type: 'text' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod.', 
-        date: '2 weeks ago',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.'
-      },
-      { 
-        src: 'https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=500&h=500&fit=crop', 
-        audioUrl: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-        type: 'audio' as const,
-        name: 'Lorem Ipsum', 
-        caption: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor.', 
-        date: '2 weeks ago' 
-      }
-    ]
-  ];
+  // Convert posts to pairs for Double components
+  const getPostPairs = () => {
+    const filteredPosts = posts.filter(post => post && post.type);
+    const transformedPosts = filteredPosts.map(transformPostToProject);
+    const pairs = [];
+    for (let i = 0; i < transformedPosts.length; i += 2) {
+      pairs.push([
+        transformedPosts[i],
+        transformedPosts[i + 1] || null
+      ].filter(Boolean));
+    }
+    console.log('Post pairs:', pairs);
+    return pairs;
+  };
 
   // Video handling functions
   const handleVideoHover = (videoId: number, isEntering: boolean) => {
@@ -398,7 +635,25 @@ const PostPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-screen overflow-x-hidden cursor-none" style={{ height: 'auto', minHeight: '100vh' }}>
+    <div style={{ position: 'relative' }}>
+      {showPreloader && <Preloader onComplete={handlePreloaderComplete} isExiting={pageAnimationStarted} text="Say Something" />}
+      
+      {/* Navbar with black text */}
+      <Navbar 
+        forceBlackText={true} // Force black text on post page
+        pageAnimationStarted={pageAnimationStarted}
+      />
+      
+      
+      {/* Page content with animation */}
+      <motion.div
+        initial={pageEntrance.initial(isMobile)}
+        animate={pageAnimationStarted ? pageEntrance.animate(isMobile) : {}}
+        style={{
+          transformOrigin,
+        }}
+        className="relative w-screen overflow-x-hidden" 
+      >
       {/* First Section - Video Gallery */}
       <div ref={containerRef} className="relative w-screen h-screen bg-[#FFF3E6]">
         {/* Video Elements */}
@@ -455,6 +710,7 @@ const PostPage: React.FC = () => {
               preload="metadata"
             >
               <source src={video.videoUrl} type="video/mp4" />
+              <source src={video.videoUrl} type="video/quicktime" />
             </video>
           </div>
         ))}
@@ -497,7 +753,7 @@ const PostPage: React.FC = () => {
           <div className="flex items-center justify-center mb-12">
             <div className="flex items-center gap-4" style={{ padding: '16px 24px', marginBottom: '16px' }}>
               <span className="text-lg font-medium text-gray-700">Say something about Pst. Tru South</span>
-              <div className="relative">
+              <div className="relative flex gap-2">
                 <button
                   ref={buttonRef}
                   onClick={handleCreatePostClick}
@@ -510,13 +766,96 @@ const PostPage: React.FC = () => {
             </div>
           </div>
           
-          {/* Series of Double components */}
-          <div className="space-y-8">
-            <Double projects={[postsData[0][0], postsData[0][1]]} onContentHover={setIsHoveringContent} />
-            <Double projects={[postsData[1][0], postsData[1][1]]} reversed={true} onContentHover={setIsHoveringContent} />
-            <Double projects={[postsData[2][0], postsData[2][1]]} onContentHover={setIsHoveringContent} />
-            <Double projects={[postsData[3][0], postsData[3][1]]} reversed={true} onContentHover={setIsHoveringContent} />
-          </div>
+          {/* Dynamic Posts Content */}
+          {isLoading ? (
+            <PostsSkeleton count={4} />
+          ) : isError ? (
+            <div style={{ textAlign: 'center', padding: '64px 0' }}>
+              <div style={{ marginBottom: '24px' }}>
+                <div style={{
+                  width: '64px',
+                  height: '64px',
+                  margin: '0 auto',
+                  backgroundColor: '#fef2f2',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: '16px'
+                }}>
+                  <svg style={{ width: '32px', height: '32px', color: '#dc2626' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <h3 style={{
+                  fontSize: '20px',
+                  fontWeight: '600',
+                  color: '#111827',
+                  marginBottom: '8px'
+                }}>
+                  Connection Error
+                </h3>
+                <p style={{
+                  color: '#6b7280',
+                  marginBottom: '24px',
+                  maxWidth: '400px',
+                  margin: '0 auto 24px auto'
+                }}>
+                  {error?.message || 'Failed to load posts'}
+                </p>
+              </div>
+              <button 
+                onClick={() => refetch()}
+                style={{
+                  padding: '12px 32px',
+                  backgroundColor: '#000000',
+                  color: '#ffffff',
+                  borderRadius: '8px',
+                  fontWeight: '500',
+                  border: 'none',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#1f2937';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#000000';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+                }}
+              >
+                Try Again
+              </button>
+            </div>
+          ) : posts.length === 0 ? (
+            <EmptyPosts onCreatePost={handleCreatePostClick} />
+          ) : (
+            <div className="space-y-8">
+              {getPostPairs().map((pair, index) => (
+                <Double 
+                  key={`pair-${index}`}
+                  projects={pair} 
+                  reversed={index % 2 === 1} 
+                  onContentHover={setIsHoveringContent} 
+                />
+              ))}
+              
+              {/* Load More Button */}
+              {hasNextPage && (
+                <div className="text-center pt-8">
+                  <button
+                    onClick={() => fetchNextPage()}
+                    disabled={isFetchingNextPage}
+                    className="px-8 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 disabled:opacity-50"
+                  >
+                    {isFetchingNextPage ? 'Loading...' : 'Load More Posts'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -618,8 +957,9 @@ const PostPage: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  console.log('Video post selected');
+                  setSelectedPostType('video');
                   setShowPostOptions(false);
+                  setShowPostForm(true);
                 }}
                 className="flex flex-col items-center rounded-md"
                 style={{ 
@@ -646,8 +986,9 @@ const PostPage: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  console.log('Picture post selected');
+                  setSelectedPostType('photo');
                   setShowPostOptions(false);
+                  setShowPostForm(true);
                 }}
                 className="flex flex-col items-center rounded-md"
                 style={{ 
@@ -674,8 +1015,9 @@ const PostPage: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  console.log('Audio post selected');
+                  setSelectedPostType('audio');
                   setShowPostOptions(false);
+                  setShowPostForm(true);
                 }}
                 className="flex flex-col items-center rounded-md"
                 style={{ 
@@ -702,8 +1044,9 @@ const PostPage: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  console.log('Text post selected');
+                  setSelectedPostType('text');
                   setShowPostOptions(false);
+                  setShowPostForm(true);
                 }}
                 className="flex flex-col items-center rounded-md"
                 style={{ 
@@ -727,6 +1070,18 @@ const PostPage: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* Post Creation Form */}
+      <PostCreationForm
+        isOpen={showPostForm}
+        onClose={() => setShowPostForm(false)}
+        postType={selectedPostType}
+        buttonPosition={buttonPosition}
+        onPostCreated={() => {
+          refetch();
+          setShowPostForm(false);
+        }}
+      />
+
       {/* Fullscreen Video Controls */}
       {fullscreenVideo && (
         <div className="fixed inset-0 z-[1001] flex items-center justify-center bg-black">
@@ -744,6 +1099,7 @@ const PostPage: React.FC = () => {
           />
         </div>
       )}
+      </motion.div>
     </div>
   );
 };

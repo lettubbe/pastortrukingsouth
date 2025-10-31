@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 
-export const useVideoScrollProgress = () => {
+export const useVideoScrollProgress = (totalVideos: number = 7) => {
   const [scrollProgress, setScrollProgress] = useState(0)
   const [videoProgress, setVideoProgress] = useState(0)
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0)
@@ -58,13 +58,13 @@ export const useVideoScrollProgress = () => {
         // Phase 2: Fullscreen sliding between videos
         setVideoProgress(1)
         const slidingProgress = (containerProgress - scaleUpThreshold) / (scaleDownThreshold - scaleUpThreshold)
-        const videoIndex = Math.floor(slidingProgress * 3) // Videos 0-2
-        setCurrentVideoIndex(Math.min(2, videoIndex))
+        const videoIndex = Math.floor(slidingProgress * totalVideos)
+        setCurrentVideoIndex(Math.min(totalVideos - 1, videoIndex))
       }
       else {
         // Phase 3: Scale down carousel, stay on last video
         setVideoProgress(1)
-        setCurrentVideoIndex(2)
+        setCurrentVideoIndex(totalVideos - 1)
       }
     }
 

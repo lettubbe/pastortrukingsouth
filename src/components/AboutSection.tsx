@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useMediaQuery } from '../hooks/useMediaQuery'
 
 const AboutSection = () => {
   const sectionRef = useRef<HTMLDivElement | null>(null)
@@ -12,6 +13,7 @@ const AboutSection = () => {
   const [fadeScrollProgress, setFadeScrollProgress] = useState(0)
   const [sectionInView, setSectionInView] = useState(false)
   const [backgroundFixed, setBackgroundFixed] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 1024px)')
 
   useEffect(() => {
     let ticking = false
@@ -94,22 +96,22 @@ const AboutSection = () => {
     { x: 20, y: 35, rotation: 0 },    // Bottom right
   ]
 
-  // Sample photos
+  // photos
   const photos = [
-    "https://picsum.photos/400/500?random=1",
-    "https://picsum.photos/400/500?random=2",
-    "https://picsum.photos/400/500?random=3",
-    "https://picsum.photos/400/500?random=4",
-    "https://picsum.photos/400/500?random=5",
-    "https://picsum.photos/400/500?random=6",
-    "https://picsum.photos/400/500?random=6"
+    "/images/about/1.jpg",
+    "/images/about/2.jpg",
+    "/images/about/3.jpg",
+    "/images/about/4.jpg",
+    "/images/about/5.jpg",
+    "/images/about/6.jpg",
+    "/images/about/7.jpg"
   ]
 
   return (
     <div
       ref={sectionRef}
       style={{
-        height: '300vh',
+        height: isMobile ? '350vh' : '350vh',
         backgroundColor: '#FFF3E6',
         position: 'relative',
         overflow: 'hidden',
@@ -117,7 +119,7 @@ const AboutSection = () => {
         zIndex: 1
       }}
     >
-      
+
       {/* Background layer - conditionally fixed */}
       <div
         style={{
@@ -206,7 +208,7 @@ const AboutSection = () => {
               color: 'black'
             }}
           >
-            Lorem
+            Biography
           </motion.h1>
         </div>
       </div>
@@ -236,16 +238,23 @@ const AboutSection = () => {
           transition={{ duration: 1 }}
           style={{
             textAlign: 'center',
-            maxWidth: '900px',
+            maxWidth: isMobile ? '100%' : '900px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '50px'
+            gap: '50px',
+            padding: '0'
           }}
         >
           {/* About section */}
           <div>
             {/* Bold text with circle image */}
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '20px', marginBottom: '20px' }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '15px' : '20px',
+              marginBottom: '20px'
+            }}>
               {/* Circle image */}
               <div style={{
                 width: '80px',
@@ -256,7 +265,7 @@ const AboutSection = () => {
                 backgroundColor: '#ddd'
               }}>
                 <img
-                  src="https://picsum.photos/200/200?random=10"
+                  src="/images/about/2.jpg"
                   alt="Profile"
                   style={{
                     width: '100%',
@@ -278,10 +287,12 @@ const AboutSection = () => {
                   fontFamily: 'var(--font-smooch-sans), sans-serif',
                 }}
               >
-                Lorem ipsum dolor sit amet consectetur adipisicing elit.
-                Molestias aperiam ex quisquam? Eius ipsam iusto fugit
-                consectetur dicta suscipit accusamus animi facere blanditiis beatae.
-                Assumenda neque sint quasi explicabo eaque.
+                Since answering the call in 2010, Pastor Tru South King has redefined what it means to lead,
+                serve, and inspire a generation. Known globally as The Rap Evangelist, his radical soul
+                winning has transformed lives all around the world.
+                From the stage to the streets, from youth gatherings to global platforms,
+                his message has remained clear and fearless: stand for truth, live for love, and never stay
+                silent in the face of darkness.
               </motion.h2>
             </div>
 
@@ -295,33 +306,40 @@ const AboutSection = () => {
                 fontWeight: '300',
                 fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
                 textAlign: 'left',
-                marginLeft: '100px' // 80px (image width) + 20px (gap) = 100px
+                marginLeft: isMobile ? '0px' : '100px' // No margin on mobile
               }}
             >
               <p style={{ marginBottom: '20px' }}>
-                A man of faith, wisdom, and unwavering dedication to his calling.
-                Pastor Tru South King has touched countless lives through his ministry,
-                leadership, and compassionate heart.
+                Widely recognized as The Loveworld Activist,
+                Pastor Tru has been a champion for the unheard,
+                confronting difficult truths, defending the gospel
+                with boldness, and using his influence to restore
+                lives and rebuild families.
               </p>
               <p style={{ marginBottom: '20px' }}>
-                For over two decades, Pastor Tru South has been a beacon of hope and
-                inspiration in the community. His powerful sermons, gentle guidance,
-                and genuine care for others have made him beloved by all who know him.
+                His compassion reaches beyond the pulpit,
+                paying tuition for the struggling, rekindling
+                broken hopes, and standing as a source of strength
+                for both young and old. His love is not confined to
+                words but expressed through action, touching hearts
+                in the most practical ways.
               </p>
               <p>
-                Today we celebrate not just another year of life, but a life lived
-                in service to God and others. His legacy continues to grow with each
-                person he touches and each life he transforms.
+                Through every act of love, he reminds the world that
+                ministry is not a profession but a calling. And
+                fifteen years on, that calling still burns bright,
+                igniting hearts, transforming lives, and inspiring
+                generations to live with purpose and conviction.
               </p>
             </motion.div>
 
             {/* Three short text blocks in a row */}
             <div style={{
               display: 'flex',
-              flexDirection: 'row',
-              gap: '12px',
+              flexDirection: isMobile ? 'column' : 'row',
+              gap: isMobile ? '20px' : '12px',
               marginTop: '40px',
-              marginLeft: '100px' // 80px (image width) + 20px (gap) = 100px
+              marginLeft: isMobile ? '0px' : '100px' // No margin on mobile
             }}>
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
@@ -338,9 +356,7 @@ const AboutSection = () => {
                   textAlign: 'left',
                   fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
                 }}>
-                  Lorem ipsum dolor sit amet, 
-                  adipiscing elit. Sed do
-                  eiusmod tempor                   
+                  The people call him Tru South. Heaven calls him faithful.
                 </p>
               </motion.div>
 
@@ -359,9 +375,7 @@ const AboutSection = () => {
                   margin: 0,
                   fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
                 }}>
-                  Ut enim ad minim veniam,
-                  exercitation ullamco
-                  laboris nisi ut
+                  Fifteen years later, his mission remains clear: win souls, change stories, glorify God.
                 </p>
               </motion.div>
 
@@ -380,9 +394,7 @@ const AboutSection = () => {
                   margin: 0,
                   fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
                 }}>
-                  Duis aute irure dolor in
-                  in voluptate velit
-                  esse cillum dolo
+                  Leading by example. Living a life of victory. Inspiring others to strive for excellence.
                 </p>
               </motion.div>
             </div>
@@ -418,7 +430,7 @@ const AboutSection = () => {
                   fontSize: '18px',
                   lineHeight: '1.6',
                   color: '#940404',
-                  width: '60%',
+                  width: isMobile ? '100%' : '60%',
                   wordWrap: 'break-word',
                   overflowWrap: 'break-word',
                   whiteSpace: 'normal',
@@ -426,36 +438,18 @@ const AboutSection = () => {
                 }}
               >
                 {[
-                  { text: 'Lorem', font: 'serif' },
-                  { text: 'Ipsum', font: 'monospace' },
-                  { text: 'Dolor', font: 'var(--font-smooch-sans), sans-serif' },
-                  { text: 'Sit', font: 'var(--font-geist-sans), system-ui' },
-                  { text: 'Amet', font: 'Georgia, serif' },
-                  { text: 'Consectetur', font: 'Arial, sans-serif' },
-                  { text: 'Adipiscing', font: 'Times, serif' },
-                  { text: 'Elit', font: 'Courier, monospace' },
-                  { text: 'Sed', font: 'Helvetica, sans-serif' },
-                  { text: 'Eiusmod', font: 'Palatino, serif' },
-                  { text: 'Tempor', font: 'Monaco, monospace' },
-                  { text: 'Incididunt', font: 'Verdana, sans-serif' },
-                  { text: 'Labore', font: 'Garamond, serif' },
-                  { text: 'Dolore', font: 'Impact, sans-serif' },
-                  { text: 'Magna', font: 'Trebuchet MS, sans-serif' },
-                  { text: 'Aliqua', font: 'Book Antiqua, serif' },
-                  { text: 'Enim', font: 'Lucida Console, monospace' },
-                  { text: 'Minim', font: 'Tahoma, sans-serif' },
-                  { text: 'Veniam', font: 'Century, serif' },
-                  { text: 'Quis', font: 'Courier New, monospace' },
-                  { text: 'Nostrud', font: 'Optima, sans-serif' },
-                  { text: 'Exercitation', font: 'Baskerville, serif' },
-                  { text: 'Ullamco', font: 'Consolas, monospace' },
-                  { text: 'Laboris', font: 'Futura, sans-serif' },
-                  { text: 'Nisi', font: 'Didot, serif' },
-                  { text: 'Aliquip', font: 'Menlo, monospace' },
-                  { text: 'Commodo', font: 'Avenir, sans-serif' },
-                  { text: 'Consequat', font: 'Minion Pro, serif' },
-                  { text: 'Duis', font: 'Source Code Pro, monospace' },
-                  { text: 'Aute', font: 'Gill Sans, sans-serif' }
+                  { text: 'Top 100 Soul Winners 2012', font: 'serif' },
+                  { text: 'Best Dad of All Time', font: 'monospace' },
+                  { text: 'Theme Song of the Year 2020', font: 'Georgia, serif' },
+                  { text: 'The Pastor Who Never Gives Up on You', font: 'Monaco, monospace' },
+                  { text: 'Top 100 Cell Leaders 2012', font: 'monospace' },
+                  { text: 'Theme Song of the Year 2023', font: 'Arial, sans-serif' },
+                  { text: 'Crusaders Award 2025', font: 'Times, serif' },
+                  { text: 'Music Outreach Group 2024', font: 'var(--font-smooch-sans), sans-serif' },
+                  { text: "Worlds' shortest sermon 2025", font: 'Garamond, serif' },
+                  { text: 'Man Who Turns Vision into Reality', font: 'Courier New, monospace' },
+                  { text: 'Walking Definition of Love', font: 'Tahoma, sans-serif' },
+
                 ].map((award, index) => (
                   <span key={index}>
                     <span
@@ -479,24 +473,24 @@ const AboutSection = () => {
               marginTop: '80px'
             }}>
               <div style={{
-                width: '250px',
-                height: '350px',
+                width: isMobile ? '200px' : '250px',
+                height: isMobile ? '280px' : '350px',
                 overflow: 'hidden',
                 backgroundColor: '#ddd'
               }}>
-              <motion.img
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8 }}
-                viewport={{ once: true }}
-                src="https://picsum.photos/600/800?random=11"
-                alt="Featured photo"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
+                <motion.img
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8 }}
+                  viewport={{ once: true }}
+                  src="/images/about/1.jpg"
+                  alt="Featured photo"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover'
+                  }}
+                />
               </div>
             </div>
 
@@ -513,7 +507,7 @@ const AboutSection = () => {
                 viewport={{ once: true }}
               >
                 <p style={{
-                  fontSize: '180px',
+                  fontSize: isMobile ? 'clamp(100px, 12vw, 120px)' : '180px',
                   fontWeight: '700',
                   color: 'black',
                   margin: 0,
@@ -523,7 +517,7 @@ const AboutSection = () => {
                   TSK 10:30
                 </p>
                 <p style={{
-                  fontSize: '180px',
+                  fontSize: isMobile ? 'clamp(40px, 12vw, 80px)' : '180px',
                   fontWeight: '700',
                   color: 'black',
                   margin: 0,

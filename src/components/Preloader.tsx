@@ -45,9 +45,10 @@ const textScaleDown = {
 interface PreloaderProps {
   onComplete: () => void;
   isExiting?: boolean;
+  text?: string;
 }
 
-export default function Preloader({ onComplete, isExiting = false }: PreloaderProps) {
+export default function Preloader({ onComplete, isExiting = false, text = "Tru South King" }: PreloaderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [shouldScale, setShouldScale] = useState(false);
 
@@ -55,7 +56,9 @@ export default function Preloader({ onComplete, isExiting = false }: PreloaderPr
     const timer = setTimeout(() => {
       onComplete(); // Start page animation immediately after 2 seconds
       setTimeout(() => setShouldScale(true), 300); // Start scale after 300ms
-      setTimeout(() => setIsLoading(false), 1300); // Hide preloader after animations
+      setTimeout(() => {
+        setIsLoading(false);
+      }, 1300); // Hide preloader after animations
     }, 2000); // Show preloader for 2 seconds
 
     return () => clearTimeout(timer);
@@ -109,7 +112,7 @@ export default function Preloader({ onComplete, isExiting = false }: PreloaderPr
               margin: 0
             }}
           >
-            Tru South King
+            {text}
           </motion.h1>
         </motion.div>
       )}

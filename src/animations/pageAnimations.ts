@@ -1,9 +1,9 @@
 export const pageSwing = {
   animate: (isMenuOpen: boolean) => ({
     y: isMenuOpen ? 550 : 0,
-    x: isMenuOpen ? -120 : 0,
+    x: 0,
     rotateZ: isMenuOpen ? -8 : 0,
-    scale: isMenuOpen ? 1.25 : 1,
+    scale: isMenuOpen ? 1.35 : 1,
     transition: {
       duration: 0.8,
       ease: [0.6, 0, 0.4, 1] as any
@@ -13,9 +13,9 @@ export const pageSwing = {
 
 export const pageEntrance = {
   initial: (isMobile: boolean) => {
-    console.log('PageEntrance initial:', isMobile);
+    // console.log('PageEntrance initial:', isMobile);
     return {
-      y: isMobile ? '1200px' : '900px',
+      y: '900px',
       x: isMobile ? -60 : -120,
       rotateZ: isMobile ? -7 : -8,
       scale: isMobile ? 1.4 : 1.25

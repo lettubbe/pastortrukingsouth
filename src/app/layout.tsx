@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import { Style_Script, Smooch_Sans } from "next/font/google";
+import { Toaster } from "sonner";
+import { QueryProvider } from "../providers/QueryProvider";
+import { AudioProvider } from "../providers/AudioProvider";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -40,9 +43,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${styleScript.variable} ${smoochSans.variable} antialiased m-0 p-0 w-screen min-h-screen overflow-x-hidden`}
+        className={`${geistSans.variable} ${geistMono.variable} ${styleScript.variable} ${smoochSans.variable} antialiased m-0 p-0 w-screen min-h-screen overflow-x-hidden loading`}
       >
-        {children}
+        <QueryProvider>
+          <AudioProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </AudioProvider>
+        </QueryProvider>
       </body>
     </html>
   );

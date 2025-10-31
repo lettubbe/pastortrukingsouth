@@ -66,9 +66,17 @@ const navbarStyles = `
     }
     
     .menu-link-text {
-      font-size: 28px;
-      line-height: 1.2;
+      font-size: 42px;
+      line-height: 1.1;
       word-break: break-word;
+      max-width: 100%;
+      white-space: normal;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+    
+    .menu-link-text span {
+      display: inline !important;
     }
     
     .media-display {
@@ -118,9 +126,9 @@ const blur = {
 };
 
 const mainLinks = [
-  { title: "About", href: "#about", media: { type: "gif", src: "https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif" } },
-  { title: "Say something", href: "/post", media: { type: "gif", src: "https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif" } },
-  { title: "BTS", href: "/behindthescenes", media: { type: "gif", src: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif" } }
+  { title: "About", href: "/about", media: { type: "image", src: "/images/hero1.jpg" } },
+  { title: "Say something", href: "/post", media: { type: "video", src: "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/wife%26kids.mp4" } },
+  // { title: "BTS", href: "/behindthescenes", media: { type: "gif", src: "https://media.giphy.com/media/3oKIPnAiaMCws8nOsE/giphy.gif" } }
 ];
 
 const socialLinks = [
@@ -185,7 +193,7 @@ const menuContentSwing = {
   }
 };
 
-export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuToggle?: (isOpen: boolean) => void; pageAnimationStarted?: boolean }) {
+export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackText }: { onMenuToggle?: (isOpen: boolean) => void; pageAnimationStarted?: boolean; forceBlackText?: boolean }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState({ isActive: false, index: 0 });
   const [hasScrolled, setHasScrolled] = useState(false);
@@ -204,13 +212,42 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      // Clean up body styles on unmount
+      if (typeof document !== 'undefined') {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = 'auto';
+      }
+    };
   }, []);
 
   const handleMenuToggle = () => {
     const newState = !isMenuOpen;
     setIsMenuOpen(newState);
     onMenuToggle?.(newState);
+    
+    // Prevent body scroll when menu is open
+    if (typeof document !== 'undefined') {
+      if (newState) {
+        // Store current scroll position
+        const scrollY = window.scrollY;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = '100%';
+        document.body.style.overflow = 'hidden';
+      } else {
+        // Restore scroll position
+        const scrollY = document.body.style.top;
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        document.body.style.overflow = 'auto';
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      }
+    }
   };
 
   const getChars = (word: string) => {
@@ -248,13 +285,13 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
         alignItems: 'center'
       }}>
         {/* Logo */}
-        <div style={{ zIndex: 50, overflow: 'hidden', position: 'relative' }}>
+        <a href="/" style={{ zIndex: 50, overflow: 'hidden', position: 'relative', textDecoration: 'none', cursor: 'pointer' }}>
           {/* Text Logo */}
           <h1 
             className="navbar-logo"
             style={{ 
               fontWeight: '500', 
-              color: 'white',
+              color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : 'white'),
               margin: 0,
               fontFamily: 'var(--font-smooch-sans), sans-serif',
               opacity: hasScrolled ? 0 : 1,
@@ -293,7 +330,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               }}
             />
           </div>
-        </div>
+        </a>
 
         {/* Hamburger Menu Button */}
         <button 
@@ -322,7 +359,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{ 
                 fontSize: '14px', 
                 fontWeight: '500', 
-                color: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
+                color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
                 position: 'absolute',
                 top: '-18%',
                 left: '0%',
@@ -342,7 +379,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{ 
                 fontSize: '14px', 
                 fontWeight: '500', 
-                color: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
+                color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
                 position: 'absolute',
                 top: '-18%',
                 left: '0%',
@@ -365,7 +402,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{
                 width: '24px',
                 height: '2px',
-                backgroundColor: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
+                backgroundColor: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
                 marginBottom: isMenuOpen ? 0 : '4px',
                 transformOrigin: 'center',
                 transition: 'background-color 0.3s ease'
@@ -380,7 +417,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
               style={{
                 width: '24px',
                 height: '2px',
-                backgroundColor: isMenuOpen ? 'white' : (isOverHero ? 'white' : 'black'),
+                backgroundColor: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
                 marginTop: isMenuOpen ? 0 : '4px',
                 transformOrigin: 'center',
                 transition: 'background-color 0.3s ease'
@@ -476,7 +513,10 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
                       color: '#FFF3E6',
                       margin: 0,
                       overflow: 'hidden',
-                      fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif'
+                      fontFamily: 'var(--font-geist-sans), system-ui, -apple-system, sans-serif',
+                      width: '100%',
+                      maxWidth: '100%',
+                      wordWrap: 'break-word'
                     }}
                   >
                     {getChars(link.title)}
@@ -543,15 +583,30 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted }: { onMenuT
                     overflow: 'hidden'
                   }}
                 >
-                  <img
-                    src={mainLinks[selectedLink.index].media.src}
-                    alt={mainLinks[selectedLink.index].title}
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
+                  {mainLinks[selectedLink.index].media.type === 'video' ? (
+                    <video
+                      src={mainLinks[selectedLink.index].media.src}
+                      autoPlay
+                      muted
+                      loop
+                      playsInline
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  ) : (
+                    <img
+                      src={mainLinks[selectedLink.index].media.src}
+                      alt={mainLinks[selectedLink.index].title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                  )}
                 </motion.div>
               )}
             </div>
