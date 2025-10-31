@@ -201,6 +201,8 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
   const [isOverHero, setIsOverHero] = useState(true);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const handleScroll = () => {
       const scrollY = window.scrollY;
       setHasScrolled(scrollY > 50);
@@ -212,6 +214,8 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial call
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       // Clean up body styles on unmount

@@ -4,7 +4,11 @@ import React from 'react'
 import { motion, useTransform, useMotionValue } from 'framer-motion'
 import { useVideoScrollProgress } from '../hooks/useVideoScrollProgress'
 import { useMediaQuery } from '../hooks/useMediaQuery'
+import { useWindowDimensions } from '../hooks/useWindowDimensions'
 import { useAudioContext } from '../providers/AudioProvider'
+import { getWishesVideos } from '../data/wishes-videos'
+import { VideoPlayer } from './VideoPlayer'
+import { LoadingSpinner } from './LoadingSpinner'
 
 interface WishesSectionProps {
   // No longer need audio props since we use global context
@@ -19,112 +23,9 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
   const [iPosition, setIPosition] = React.useState<{top: number, left: number} | null>(null);
   const [videosLoaded, setVideosLoaded] = React.useState<boolean[]>(new Array(7).fill(false));
   const isMobile = useMediaQuery('(max-width: 1024px)');
+  const { windowDimensions, isClient } = useWindowDimensions();
   
-  // S3 video URLs for WishesSection
-  const videos = [
-    {
-      id: 'wife-upgrade',
-      title: "Wife",
-      thumbnail: "https://picsum.photos/300/300?random=1",
-      videoUrl: "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Ms.+UpgradeMain%5Bwife%5D.mp4",
-      audioUrl: undefined,
-      x: 15,
-      y: 20,
-      size: 120,
-      color: '#ff6b6b',
-      caption: "Wife",
-      authorName: "Wife",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'wife-kids',
-      title: "Wife&Kids", 
-      thumbnail: "https://picsum.photos/300/300?random=2",
-      videoUrl: "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/wife%26kids.mp4",
-      audioUrl: undefined,
-      x: 85,
-      y: 25,
-      size: 100,
-      color: '#4ecdc4',
-      caption: "Wife&Kids",
-      authorName: "Wife&Kids",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'Pst-isreal',
-      title: "Brother", 
-      thumbnail: "https://picsum.photos/300/300?random=2",
-      videoUrl: isMobile 
-        ? "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Pastor+Israel+Atima.mp4"
-        : "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Pastor+Israel+Atima+-+HBD+P.TSK.mp4",
-      audioUrl: undefined,
-      x: 85,
-      y: 25,
-      size: 100,
-      color: '#4ecdc4',
-      caption: "Brother",
-      authorName: "Brother",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'sister-esther',
-      title: "Sister", 
-      thumbnail: "https://picsum.photos/300/300?random=4",
-      videoUrl: isMobile 
-        ? "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Esther+Atima.mp4"
-        : "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Sis+Esther+Atima+-+HBD+P.TSK.mp4",
-      audioUrl: undefined,
-      x: 60,
-      y: 40,
-      size: 120,
-      color: '#e17055',
-      caption: "Sister",
-      authorName: "Sister",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'tb1',
-      title: "TB1",
-      thumbnail: "https://picsum.photos/300/300?random=3",
-      videoUrl: "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/TB1.mov",
-      audioUrl: undefined,
-      x: 10,
-      y: 75,
-      size: 140,
-      color: '#45b7d1',
-      caption: "TB1",
-      authorName: "TB1",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'protek',
-      title: "Protek",
-      thumbnail: "https://picsum.photos/300/300?random=4",
-      videoUrl: "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Protek.mp4",
-      audioUrl: undefined,
-      x: 75,
-      y: 10,
-      size: 130,
-      color: '#ffeaa7',
-      caption: "Protek",
-      authorName: "Protek",
-      createdAt: new Date().toISOString()
-    },
-    {
-      id: 'peddygree',
-      title: "Peddygree",
-      thumbnail: "https://picsum.photos/300/300?random=5",
-      videoUrl: "https://lettubbe-development.s3.eu-north-1.amazonaws.com/truSouthKing/Peddygree.mov",
-      audioUrl: undefined,
-      x: 30,
-      y: 50,
-      size: 110,
-      color: '#fd79a8',
-      caption: "Peddygree",
-      authorName: "Peddygree",
-      createdAt: new Date().toISOString()
-    }
-  ];
+  const videos = getWishesVideos(isMobile);
   
   const { scrollProgress, videoProgress, currentVideoIndex, containerRef, videoRef } = useVideoScrollProgress(videos.length)
   const videoTexts = videos.map(video => video.authorName || 'Anonymous');
@@ -143,10 +44,10 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
     if (isMobile) {
       // Mobile: Full viewport width and height, no spacing
       maxWidth = 100 // Use 100% width for full mobile viewing
-      maxHeight = window.innerHeight // Full viewport height
+      maxHeight = windowDimensions.height // Full viewport height
     } else {
       // Desktop: Landscape container spanning full width
-      maxHeight = window.innerHeight // Full viewport height
+      maxHeight = windowDimensions.height // Full viewport height
       maxWidth = 100 // Full viewport width for edge-to-edge black bars
     }
   } else {
@@ -157,19 +58,35 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
       const endWidth = 100
       maxWidth = Math.min(endWidth, startWidth + (videoProgress * (endWidth - startWidth)))
       
-      const startHeight = window.innerHeight * 0.6 // Start at reasonable size
-      const endHeight = window.innerHeight // End at full viewport height
+      const startHeight = windowDimensions.height * 0.6 // Start at reasonable size
+      const endHeight = windowDimensions.height // End at full viewport height
       maxHeight = startHeight + (videoProgress * (endHeight - startHeight))
     } else {
-      // Desktop: Progressive sizing to full-width landscape container
+      // Desktop: Progressive sizing to completely fill viewport (cover behavior)
       const startHeight = 400
-      const endHeight = window.innerHeight // Full viewport height
-      maxHeight = startHeight + (videoProgress * (endHeight - startHeight))
+      const startWidth = (startHeight * (16/9)) / windowDimensions.width * 100 // Start with 16:9 aspect ratio
       
-      // Progressive width to full viewport width for edge-to-edge black bars
-      const startWidth = (startHeight * (16/9)) / window.innerWidth * 100 // Start with 16:9 aspect ratio
-      const endWidth = 100 // End at full viewport width
-      maxWidth = startWidth + (videoProgress * (endWidth - startWidth))
+      // Calculate dimensions needed to fill entire viewport with coordinated timing
+      const videoAspectRatio = 16 / 9
+      const viewportAspectRatio = windowDimensions.width / windowDimensions.height
+      
+      let endWidth, endHeight
+      if (videoAspectRatio > viewportAspectRatio) {
+        // Video is wider than viewport - scale to fill height, width will exceed viewport
+        endHeight = windowDimensions.height
+        endWidth = (endHeight * videoAspectRatio) / windowDimensions.width * 100
+      } else {
+        // Video is taller than viewport - scale to fill width, height will exceed viewport  
+        endWidth = 100
+        endHeight = (windowDimensions.width * (endWidth / 100)) / videoAspectRatio
+      }
+      
+      // Coordinate timing: slow down width, speed up height
+      const heightProgress = Math.min(1, videoProgress * 1.4) // Height reaches target at 70% of scroll
+      const widthProgress = Math.min(1, Math.max(0, (videoProgress - 0.2) * 1.25)) // Width starts at 20% and reaches target at 100%
+      
+      maxHeight = startHeight + (heightProgress * (endHeight - startHeight))
+      maxWidth = startWidth + (widthProgress * (endWidth - startWidth))
     }
   }
 
@@ -177,12 +94,12 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
   if (isScaleDownPhase && scaleDownProgress > 0) {
     if (isMobile) {
       // Mobile: Scale down from full height to small circle
-      const mobileMaxHeight = window.innerHeight // Start from full viewport height
+      const mobileMaxHeight = windowDimensions.height // Start from full viewport height
       maxHeight = mobileMaxHeight - (scaleDownProgress * (mobileMaxHeight - 20)) // Smaller final size
       maxWidth = 100 - (scaleDownProgress * 98) // Scale down from mobile sliding width
     } else {
       // Desktop: Scale down from full-width landscape container
-      const desktopMaxHeight = window.innerHeight // Full viewport height
+      const desktopMaxHeight = windowDimensions.height // Full viewport height
       maxHeight = desktopMaxHeight - (scaleDownProgress * (desktopMaxHeight - 20)) // Smaller final size
       // Scale down from full viewport width to final circle size
       maxWidth = 100 - (scaleDownProgress * 98)
@@ -191,7 +108,7 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
     // In final stages, morph to circle by making width equal to height
     if (scaleDownProgress > 0.7) {
       const morphProgress = (scaleDownProgress - 0.7) / 0.3 // 0 to 1 for morph phase
-      const targetWidth = (maxHeight / window.innerWidth) * 100 // Convert height to width percentage
+      const targetWidth = (maxHeight / windowDimensions.width) * 100 // Convert height to width percentage
       maxWidth = maxWidth + (targetWidth - maxWidth) * morphProgress
     }
   }
@@ -364,6 +281,7 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
           transition={{ duration: 0.7, delay: 0.5 }}
           viewport={{ once: true }}
           style={{
+            marginTop: isScaleUpPhase ? (isMobile ? '40vh' : '30vh') : '0', // Move video down during scale-up
             width: `${maxWidth}%`,
             height: `${maxHeight}px`,
             borderRadius: (() => {
@@ -385,7 +303,7 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
                 ? iPosition && scaleDownProgress >= 1.0
                   ? `${iPosition.top}px` // Use exact measured position
                   : `calc(30vh - ${maxHeight / 2}px)` // Normal scale down position
-                : '0',
+                : '0', // Normal positioning during scale-up
             transition: scaleDownProgress >= 1.0 && iPosition ? 'top 0.5s ease-out, left 0.5s ease-out' : 'top 0.3s ease-out',
             left: isSlidingPhase
               ? !isMobile ? '0' : `calc(50vw - ${maxWidth / 2}%)`
@@ -396,7 +314,9 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
                 : '0',
             transform: 'none',
             zIndex: isSlidingPhase ? 1000 : 'auto',
-            margin: '0 auto',
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            marginBottom: '0',
             opacity: 1
           }}
         >
@@ -460,17 +380,14 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
               }
 
               return (
-                <motion.video
+                <VideoPlayer
                   key={index}
-                  ref={(el) => {
-                    if (el) {
-                      videoElements.current[index] = el;
-                    }
-                  }}
-                  muted
-                  loop
-                  playsInline
-                  preload="metadata"
+                  video={video}
+                  index={index}
+                  translateX={translateX}
+                  scaleX={scaleX}
+                  opacity={opacity}
+                  isMobile={isMobile}
                   onLoadedData={() => {
                     setVideosLoaded(prev => {
                       const newLoaded = [...prev];
@@ -478,28 +395,12 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
                       return newLoaded;
                     });
                   }}
-                  animate={{
-                    x: `${translateX}%`,
-                    scaleX: scaleX,
-                    opacity: opacity
+                  videoRef={(el) => {
+                    if (el) {
+                      videoElements.current[index] = el;
+                    }
                   }}
-                  transition={{
-                    duration: 0.5,
-                    ease: [0.4, 0, 0.2, 1]
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: isMobile ? 'cover' : 'contain',
-                    transformOrigin: 'center'
-                  }}
-                >
-                  <source src={video.videoUrl || video.thumbnail || ''} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </motion.video>
+                />
               )
             })}
           </div>
@@ -591,40 +492,7 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
             </div>
           )}
 
-          {/* Loading indicator for current video */}
-          {isSlidingPhase && !videosLoaded[currentVideoIndex] && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 1003,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                borderRadius: '50px',
-                padding: '20px',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                style={{
-                  width: '20px',
-                  height: '20px',
-                  border: '2px solid rgba(255, 255, 255, 0.3)',
-                  borderTop: '2px solid white',
-                  borderRadius: '50%'
-                }}
-              />
-            </motion.div>
-          )}
+          <LoadingSpinner isVisible={isSlidingPhase && !videosLoaded[currentVideoIndex]} />
 
         </motion.div>
 

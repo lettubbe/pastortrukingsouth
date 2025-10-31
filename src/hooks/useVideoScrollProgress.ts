@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 export const useVideoScrollProgress = (totalVideos: number = 7) => {
   const [scrollProgress, setScrollProgress] = useState(0)
@@ -9,15 +9,26 @@ export const useVideoScrollProgress = (totalVideos: number = 7) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLDivElement>(null)
   const frameRef = useRef<number>(0)
+  const lastUpdateRef = useRef({ scrollProgress: 0, videoProgress: 0, currentVideoIndex: 0 })
+  const totalVideosRef = useRef(totalVideos)
+
+  // Update ref when prop changes
+  useEffect(() => {
+    totalVideosRef.current = totalVideos
+  }, [totalVideos])
 
   // Easing function for smoother transitions
   const easeOutCubic = (t: number): number => {
     return 1 - Math.pow(1 - t, 3)
   }
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current || !videoRef.current) return
+  const handleScroll = useCallback(() => {
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current)
+    }
+    
+    frameRef.current = requestAnimationFrame(() => {
+      if (!containerRef.current || !videoRef.current || typeof window === 'undefined') return
 
       const container = containerRef.current
       const video = videoRef.current
@@ -43,36 +54,63 @@ export const useVideoScrollProgress = (totalVideos: number = 7) => {
       const scrolled = Math.max(0, -containerRect.top)
       const containerProgress = Math.min(1, Math.max(0, scrolled / totalScrollDistance))
       
-      setScrollProgress(containerProgress)
-
       // 3-phase scroll logic
       const scaleUpThreshold = 0.25 // Scale up until 25%
       const scaleDownThreshold = 0.65 // Start scaling down at 65%
       
+      let newVideoProgress = videoScaleProgress
+      let newVideoIndex = 0
+      
       if (containerProgress < scaleUpThreshold) {
         // Phase 1: Scale up carousel, stay on video 0
-        setVideoProgress(videoScaleProgress)
-        setCurrentVideoIndex(0)
+        newVideoProgress = videoScaleProgress
+        newVideoIndex = 0
       } 
       else if (containerProgress < scaleDownThreshold) {
         // Phase 2: Fullscreen sliding between videos
-        setVideoProgress(1)
+        newVideoProgress = 1
         const slidingProgress = (containerProgress - scaleUpThreshold) / (scaleDownThreshold - scaleUpThreshold)
-        const videoIndex = Math.floor(slidingProgress * totalVideos)
-        setCurrentVideoIndex(Math.min(totalVideos - 1, videoIndex))
+        const videoIndex = Math.floor(slidingProgress * totalVideosRef.current)
+        newVideoIndex = Math.min(totalVideosRef.current - 1, videoIndex)
       }
       else {
         // Phase 3: Scale down carousel, stay on last video
-        setVideoProgress(1)
-        setCurrentVideoIndex(totalVideos - 1)
+        newVideoProgress = 1
+        newVideoIndex = totalVideosRef.current - 1
       }
-    }
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    handleScroll() // Initial call
+      // Only update state if values actually changed
+      const threshold = 0.001
+      if (Math.abs(lastUpdateRef.current.scrollProgress - containerProgress) > threshold ||
+          Math.abs(lastUpdateRef.current.videoProgress - newVideoProgress) > threshold ||
+          lastUpdateRef.current.currentVideoIndex !== newVideoIndex) {
+        
+        lastUpdateRef.current = { 
+          scrollProgress: containerProgress, 
+          videoProgress: newVideoProgress, 
+          currentVideoIndex: newVideoIndex 
+        }
+        
+        setScrollProgress(containerProgress)
+        setVideoProgress(newVideoProgress)
+        setCurrentVideoIndex(newVideoIndex)
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const scrollHandler = () => handleScroll()
+    
+    window.addEventListener('scroll', scrollHandler, { passive: true })
+    scrollHandler() // Initial call
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', scrollHandler)
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current)
+      }
     }
   }, [])
 

@@ -3,6 +3,13 @@
 /* Disable scroll restoration */
 html {
   scroll-behavior: auto !important;
+  /* Prevent mobile bounce/overscroll */
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  /* Ensure full height on mobile */
+  height: 100%;
+  /* Prevent iOS bounce completely */
+  -webkit-overflow-scrolling: auto;
 }
 
 /* Hide scrollbars while keeping scroll functionality */
@@ -49,6 +56,12 @@ body {
   -webkit-overflow-scrolling: touch;
   /* Prevent bounce effect on iOS */
   overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  /* Prevent mobile address bar issues */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  /* Control touch behavior */
+  touch-action: pan-y;
   font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
 }
 
