@@ -132,9 +132,9 @@ const mainLinks = [
 ];
 
 const socialLinks = [
-  { title: "instagram", href: "/instagram" },
-  { title: "youtube", href: "/youtube" },
-  { title: "kingschat", href: "/kingschat" }
+  { title: "instagram", href: "https://instagram.com/trusouthking" },
+  { title: "youtube", href: "https://www.youtube.com/@trusouthking" },
+  // { title: "kingschat", href: "/kingschat" }
 ];
 
 const swingOut = {
