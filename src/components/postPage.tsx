@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { motion, AnimatePresence } from 'framer-motion';
+import Lenis from '@studio-freight/lenis';
 import { Double } from './Double';
 import { PostCreationForm } from './PostCreationForm';
 import { PostsSkeleton, EmptyPosts } from './PostsSkeleton';
@@ -51,6 +52,7 @@ const PostPage: React.FC = () => {
   const buttonRef = useRef<HTMLButtonElement>(null);
   
   // Preloader and page animation state
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showPreloader, setShowPreloader] = useState(true);
   const [pageAnimationStarted, setPageAnimationStarted] = useState(false);
   const [transformOrigin, setTransformOrigin] = useState('50% 50vh');
@@ -327,6 +329,41 @@ const PostPage: React.FC = () => {
       // Remove loading class when preloader is done
       document.body.classList.remove('loading');
     }
+  }, [showPreloader]);
+
+  const handleMenuToggle = (menuState: boolean) => {
+    if (menuState) {
+      // Capture current viewport center in page coordinates
+      const scrollY = window.scrollY;
+      const viewportCenterY = scrollY + (window.innerHeight / 2);
+      setTransformOrigin(`50% ${viewportCenterY}px`);
+    }
+    setIsMenuOpen(menuState);
+  };
+
+  useEffect(() => {
+    // Only initialize Lenis after preloader is done
+    if (!showPreloader) {
+      const lenis = new Lenis();
+
+      function raf(time: number) {
+        lenis.raf(time);
+        requestAnimationFrame(raf);
+      }
+
+      requestAnimationFrame(raf);
+
+      return () => {
+        lenis.destroy();
+      };
+    }
+
+    // Scroll to top on load
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 100);
+
+    return () => {};
   }, [showPreloader]);
 
   const videos: VideoElement[] = [
@@ -637,23 +674,30 @@ const PostPage: React.FC = () => {
   return (
     <div style={{ position: 'relative' }}>
       {showPreloader && <Preloader onComplete={handlePreloaderComplete} isExiting={pageAnimationStarted} text="Say Something" />}
-      
-      {/* Navbar with black text */}
-      <Navbar 
-        forceBlackText={true} // Force black text on post page
-        pageAnimationStarted={pageAnimationStarted}
-      />
-      
-      
-      {/* Page content with animation */}
+
       <motion.div
-        initial={pageEntrance.initial(isMobile)}
-        animate={pageAnimationStarted ? pageEntrance.animate(isMobile) : {}}
+        variants={pageEntrance}
+        initial="initial"
+        animate={pageAnimationStarted ? "animate" : "initial"}
+        custom={isMobile}
         style={{
-          transformOrigin,
+          position: 'relative',
+          backgroundColor: 'transparent',
+          zIndex: pageAnimationStarted ? 10000 : 1,
+          transformOrigin: 'top left'
         }}
-        className="relative w-screen overflow-x-hidden" 
       >
+        <Navbar onMenuToggle={handleMenuToggle} pageAnimationStarted={pageAnimationStarted} forceBlackText={true} />
+
+        <motion.div
+          variants={pageSwing}
+          animate="animate"
+          custom={isMenuOpen}
+          style={{
+            width: '100%',
+            transformOrigin: transformOrigin
+          }}
+        >
       {/* First Section - Video Gallery */}
       <div ref={containerRef} className="relative w-screen h-screen bg-[#FFF3E6]">
         {/* Video Elements */}
@@ -1099,6 +1143,7 @@ const PostPage: React.FC = () => {
           />
         </div>
       )}
+        </motion.div>
       </motion.div>
     </div>
   );
