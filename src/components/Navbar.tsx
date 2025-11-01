@@ -199,6 +199,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
   const [hasScrolled, setHasScrolled] = useState(false);
   const [showLogo, setShowLogo] = useState(false);
   const [isOverHero, setIsOverHero] = useState(true);
+  const [isOverEditSection, setIsOverEditSection] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -211,6 +212,11 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
       // Hero section is 160vh tall, so approximately 160% of viewport height
       const heroHeight = window.innerHeight * 1.6;
       setIsOverHero(scrollY < heroHeight - 100); // Add buffer for transition
+      
+      // Check if we're over the EditSection
+      const editSectionStart = window.innerHeight * 5.4;
+      const editSectionEnd = window.innerHeight * 7;
+      setIsOverEditSection(scrollY >= editSectionStart && scrollY <= editSectionEnd);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -363,7 +369,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
               style={{ 
                 fontSize: '14px', 
                 fontWeight: '500', 
-                color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
+                color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero || isOverEditSection ? 'white' : 'black')),
                 position: 'absolute',
                 top: '-18%',
                 left: '0%',
@@ -383,7 +389,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
               style={{ 
                 fontSize: '14px', 
                 fontWeight: '500', 
-                color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
+                color: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero || isOverEditSection ? 'white' : 'black')),
                 position: 'absolute',
                 top: '-18%',
                 left: '0%',
@@ -406,7 +412,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
               style={{
                 width: '24px',
                 height: '2px',
-                backgroundColor: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
+                backgroundColor: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero || isOverEditSection ? 'white' : 'black')),
                 marginBottom: isMenuOpen ? 0 : '4px',
                 transformOrigin: 'center',
                 transition: 'background-color 0.3s ease'
@@ -421,7 +427,7 @@ export default function Navbar({ onMenuToggle, pageAnimationStarted, forceBlackT
               style={{
                 width: '24px',
                 height: '2px',
-                backgroundColor: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero ? 'white' : 'black')),
+                backgroundColor: isMenuOpen ? 'white' : (forceBlackText ? 'black' : (isOverHero || isOverEditSection ? 'white' : 'black')),
                 marginTop: isMenuOpen ? 0 : '4px',
                 transformOrigin: 'center',
                 transition: 'background-color 0.3s ease'

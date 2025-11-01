@@ -14,22 +14,23 @@ export const AnimatedChars: React.FC<{
 }> = ({ word, pageAnimationStarted, scrollProgress }) => {
   const chars: React.ReactElement[] = [];
   word.split("").forEach((char, i) => {
-    const progress = Math.max(0, Math.min(1, scrollProgress * 8));
-    const charProgress = Math.max(0, Math.min(1, progress));
+    const progress = Math.max(0, Math.min(1, scrollProgress * 1.5));
+    // Add stagger delay for each character (characters exit in sequence)
+    const charDelay = i * 0.05; // Smaller delay between each character
+    const charProgress = Math.max(0, Math.min(1, (progress - charDelay) * 2)); // Amplify so all chars trigger
 
-    // Calculate scroll-based transform
+    // Calculate scroll-based transform with staggered timing - no fade, just move up
     const scrollY = charProgress * -100;
-    const scrollOpacity = 1 - charProgress;
 
     chars.push(
       <span
         key={char + i}
         style={{ 
           display: 'inline-block',
-          // SCROLL ANIMATION VIA CSS
+          // SCROLL ANIMATION VIA CSS - only transform, no opacity
           transform: pageAnimationStarted && scrollProgress > 0 ? `translateY(${scrollY}%)` : undefined,
-          opacity: pageAnimationStarted && scrollProgress > 0 ? scrollOpacity : undefined,
-          transition: 'transform 0.2s ease-out, opacity 0.2s ease-out'
+          transition: 'transform 0.2s ease-out, opacity 0.2s ease-out',
+          overflow: 'hidden'
         }}
       >
         <motion.span
@@ -78,7 +79,7 @@ export const FadeText: React.FC<{
   fadeOnScroll?: boolean;
   startDelay?: number;
 }> = ({ text, pageAnimationStarted, scrollProgress, fadeOnScroll = false, startDelay = 0 }) => {
-  const calculatedOpacity = fadeOnScroll ? Math.max(0, 1 - (scrollProgress * 15)) : 1;
+  const calculatedOpacity = fadeOnScroll ? Math.max(0, 1 - (scrollProgress * 2)) : 1;
   const words = text.split(" ");
   const wordsPerLine = Math.ceil(words.length / 3); // Approximate 3 lines
   const lines: string[] = [];

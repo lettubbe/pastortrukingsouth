@@ -590,7 +590,7 @@ const WishesSection: React.FC<WishesSectionProps> = () => {
           <div
             style={{
               position: 'fixed',
-              top: isMobile ? '50%' : '56%',
+              top: isMobile ? '51%' : '56%',
               left: '0',
               right: '0',
               transform: 'translateY(-50%)',

@@ -10,42 +10,52 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
   const heroRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [backgroundParallax, setBackgroundParallax] = useState(0);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const scrollProgressRef = useRef(0);
+  const backgroundParallaxRef = useRef(0);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const heroElement = heroRef.current;
-      if (!heroElement) return;
+    let ticking = false;
 
-      const heroRect = heroElement.getBoundingClientRect();
-      const heroHeight = heroElement.offsetHeight;
-      const windowHeight = window.innerHeight;
-      
-      // Calculate scroll progress based on element visibility
-      const scrollY = window.scrollY;
-      const elementTop = heroElement.offsetTop;
-      const elementHeight = heroElement.offsetHeight;
-      
-      // Start animation immediately when scrolling begins
-      const startScroll = 0; // Start from the very beginning of scroll
-      const endScroll = 200; // Finish after scrolling just 200px
-      const scrollRange = endScroll - startScroll;
-      
-      const progress = scrollRange > 0 ? Math.min(Math.max((scrollY - startScroll) / scrollRange, 0), 1) : 0;
-      
-      // Calculate background parallax for when hero is scrolling out of view
-      const heroBottom = elementTop + elementHeight;
-      const parallaxStart = heroBottom - windowHeight; // Start when hero bottom reaches viewport bottom
-      const parallaxEnd = parallaxStart + windowHeight * 2; // Continue for 2 viewport heights
-      const parallaxRange = parallaxEnd - parallaxStart;
-      
-      const backgroundProgress = parallaxRange > 0 ? Math.min(Math.max((scrollY - parallaxStart) / parallaxRange, 0), 1) : 0;
-      
-      // Only update if values have actually changed or on first initialization
-      if (!isInitialized || Math.abs(progress - scrollProgress) > 0.001 || Math.abs(backgroundProgress - backgroundParallax) > 0.001) {
-        setScrollProgress(progress);
-        setBackgroundParallax(backgroundProgress);
-        if (!isInitialized) setIsInitialized(true);
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const heroElement = heroRef.current;
+          if (!heroElement) {
+            ticking = false;
+            return;
+          }
+
+          const scrollY = window.scrollY;
+          const elementTop = heroElement.offsetTop;
+          const elementHeight = heroElement.offsetHeight;
+          const windowHeight = window.innerHeight;
+          
+          // Start animation immediately when scrolling begins
+          const startScroll = 0;
+          const endScroll = 200;
+          const scrollRange = endScroll - startScroll;
+          
+          const progress = scrollRange > 0 ? Math.min(Math.max((scrollY - startScroll) / scrollRange, 0), 1) : 0;
+          
+          // Calculate background parallax
+          const heroBottom = elementTop + elementHeight;
+          const parallaxStart = heroBottom - windowHeight;
+          const parallaxEnd = parallaxStart + windowHeight * 2;
+          const parallaxRange = parallaxEnd - parallaxStart;
+          
+          const backgroundProgress = parallaxRange > 0 ? Math.min(Math.max((scrollY - parallaxStart) / parallaxRange, 0), 1) : 0;
+          
+          // Only update state if values have significantly changed
+          if (Math.abs(progress - scrollProgressRef.current) > 0.01 || Math.abs(backgroundProgress - backgroundParallaxRef.current) > 0.01) {
+            scrollProgressRef.current = progress;
+            backgroundParallaxRef.current = backgroundProgress;
+            setScrollProgress(progress);
+            setBackgroundParallax(backgroundProgress);
+          }
+          
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
@@ -71,7 +81,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
       window.removeEventListener('scroll', handleScroll);
       timeouts.forEach(clearTimeout);
     };
-  }, [scrollProgress, backgroundParallax, isInitialized]);
+  }, []);
 
   return (
     <motion.div
