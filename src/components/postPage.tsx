@@ -17,6 +17,7 @@ import Navbar from './Navbar';
 import Preloader from './Preloader';
 import { pageSwing, pageEntrance } from '../animations/pageAnimations';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useAudioContext } from '../providers/AudioProvider';
 
 interface VideoElement {
   id: number;
@@ -57,6 +58,9 @@ const PostPage: React.FC = () => {
   const [pageAnimationStarted, setPageAnimationStarted] = useState(false);
   const [transformOrigin, setTransformOrigin] = useState('50% 50vh');
   const isMobile = useMediaQuery('(max-width: 1024px)');
+
+  // Background audio from global context
+  const { pauseTemporarily, resumeAudio } = useAudioContext();
   
   
   // hooks for posts data
@@ -413,6 +417,8 @@ const PostPage: React.FC = () => {
   };
 
   const handleVideoClick = (videoId: number) => {
+    // Pause background audio when entering fullscreen
+    pauseTemporarily();
     setFullscreenVideo(videoId);
     const videoIndex = videos.findIndex(v => v.id === videoId);
     const element = elementsRef.current[videoIndex];
@@ -447,6 +453,9 @@ const PostPage: React.FC = () => {
 
   const closeFullscreen = () => {
     if (fullscreenVideo === null) return;
+    
+    // Resume background audio when exiting fullscreen
+    resumeAudio();
     
     const videoIndex = videos.findIndex(v => v.id === fullscreenVideo);
     const element = elementsRef.current[videoIndex];
@@ -882,7 +891,9 @@ const PostPage: React.FC = () => {
                   key={`pair-${index}`}
                   projects={pair} 
                   reversed={index % 2 === 1} 
-                  onContentHover={setIsHoveringContent} 
+                  onContentHover={setIsHoveringContent}
+                  onAudioPause={pauseTemporarily}
+                  onAudioResume={resumeAudio}
                 />
               ))}
               

@@ -18,9 +18,11 @@ interface DoubleProps {
   projects: Project[];
   reversed?: boolean;
   onContentHover?: (isHovering: boolean) => void;
+  onAudioPause?: () => void;
+  onAudioResume?: () => void;
 }
 
-export const Double: React.FC<DoubleProps> = ({ projects, reversed = false, onContentHover }) => {
+export const Double: React.FC<DoubleProps> = ({ projects, reversed = false, onContentHover, onAudioPause, onAudioResume }) => {
   const firstImage = useRef<HTMLDivElement>(null);
   const secondImage = useRef<HTMLDivElement>(null);
   const firstVideo = useRef<HTMLVideoElement>(null);
@@ -64,8 +66,12 @@ export const Double: React.FC<DoubleProps> = ({ projects, reversed = false, onCo
 
   const handleProjectClick = (project: Project) => {
     if (project.type === 'video' && project.videoUrl) {
+      // Pause background audio when opening video fullscreen
+      onAudioPause?.();
       setFullscreenVideo(project);
     } else if (project.type === 'audio' && project.audioUrl) {
+      // Pause background audio when opening audio fullscreen
+      onAudioPause?.();
       setFullscreenAudio(project);
     } else if (project.type === 'photo') {
       setFullscreenPhoto(project);
@@ -73,10 +79,14 @@ export const Double: React.FC<DoubleProps> = ({ projects, reversed = false, onCo
   };
 
   const closeFullscreenVideo = () => {
+    // Resume background audio when closing video fullscreen
+    onAudioResume?.();
     setFullscreenVideo(null);
   };
 
   const closeFullscreenAudio = () => {
+    // Resume background audio when closing audio fullscreen
+    onAudioResume?.();
     setFullscreenAudio(null);
   };
 
@@ -297,7 +307,7 @@ export const Double: React.FC<DoubleProps> = ({ projects, reversed = false, onCo
               </video>
 
               {/* Video Info */}
-              <div className="absolute bottom-4 left-4 text-white">
+              <div className="absolute top-16 left-4 text-white">
                 <h3 className="text-lg font-medium mb-1">{fullscreenVideo.name}</h3>
                 <p className="text-sm opacity-80">{fullscreenVideo.caption}</p>
                 <p className="text-xs opacity-60 mt-1">{fullscreenVideo.date}</p>
