@@ -101,7 +101,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ pageAnimationStarted }
           left: 0,
           width: '100%',
           height: '100vh',
-          backgroundImage: 'url(/images/hero.svg)',
+          backgroundImage: 'url(/images/hero.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
